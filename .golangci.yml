@@ -1,0 +1,74 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - errorlint
+    - govet
+    - staticcheck
+    - unused
+    - ineffassign
+    - gosec
+    - bodyclose
+    - nilerr
+    - misspell
+    - revive
+    - wrapcheck
+    - copyloopvar
+    - prealloc
+    - unconvert
+    - unparam
+  settings:
+    revive:
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: error-return
+        - name: error-strings
+        - name: error-naming
+        - name: errorf
+        - name: exported
+        - name: import-shadowing
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unused-parameter
+        - name: var-declaration
+        - name: var-naming
+    wrapcheck:
+      ignore-sigs:
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Wrap(
+        - .Wrapf(
+      ignore-package-globs:
+        - github.com/voska/loby/internal/...
+  exclusions:
+    rules:
+      - path: _test\.go$
+        linters: [errcheck, gosec, wrapcheck, unparam]
+      - path: internal/cli/
+        linters: [wrapcheck]
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/voska/loby

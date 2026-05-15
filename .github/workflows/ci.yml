@@ -1,0 +1,137 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - name: gofumpt + goimports
+        run: |
+          go install mvdan.cc/gofumpt@latest
+          go install golang.org/x/tools/cmd/goimports@latest
+          goimports -local github.com/voska/loby -w .
+          gofumpt -w .
+          git diff --exit-code -- '*.go' go.mod go.sum
+      - name: go vet
+        run: go vet ./...
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: step-security/harden-runner@v2
+        if: runner.os == 'Linux'
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - name: test
+        run: go test -race -count=1 -coverprofile=coverage.out -covermode=atomic ./...
+      - name: coverage gate
+        if: runner.os == 'Linux'
+        run: |
+          pct=$(go tool cover -func=coverage.out | tail -n1 | awk '{print $3}' | tr -d '%')
+          echo "coverage: ${pct}%"
+          awk -v p="$pct" 'BEGIN{exit !(p+0 >= 80)}' || { echo "coverage below 80%"; exit 1; }
+      - uses: codecov/codecov-action@v6
+        if: runner.os == 'Linux'
+        with:
+          files: ./coverage.out
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  build:
+    name: build matrix
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    strategy:
+      matrix:
+        include:
+          - { goos: linux,   goarch: amd64 }
+          - { goos: linux,   goarch: arm64 }
+          - { goos: darwin,  goarch: amd64 }
+          - { goos: darwin,  goarch: arm64 }
+          - { goos: windows, goarch: amd64 }
+    steps:
+      - uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - name: build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          ext=""
+          [ "$GOOS" = "windows" ] && ext=".exe"
+          mkdir -p dist
+          go build -trimpath -ldflags "-s -w \
+            -X github.com/voska/loby/internal/version.Version=$(git describe --tags --always --dirty || echo dev) \
+            -X github.com/voska/loby/internal/version.Commit=$(git rev-parse --short=12 HEAD) \
+            -X github.com/voska/loby/internal/version.Date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -o "dist/loby-${GOOS}-${GOARCH}${ext}" ./cmd/loby
+      - uses: actions/upload-artifact@v7
+        with:
+          name: loby-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
+          retention-days: 7
+
+  schema-snapshot:
+    name: schema snapshot
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - name: build
+        run: go build -o bin/loby ./cmd/loby
+      - name: schema must match snapshot
+        run: |
+          if [ ! -f tests/schema.golden.json ]; then
+            echo "snapshot missing — generating baseline"
+            mkdir -p tests
+            ./bin/loby schema --json > tests/schema.golden.json
+            echo "::warning::generated schema.golden.json; commit it to lock the agent contract"
+            exit 0
+          fi
+          ./bin/loby schema --json > /tmp/schema.actual.json
+          diff -u tests/schema.golden.json /tmp/schema.actual.json

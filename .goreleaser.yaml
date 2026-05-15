@@ -1,0 +1,150 @@
+version: 2
+
+project_name: loby
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: loby
+    main: ./cmd/loby
+    binary: loby
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/voska/loby/internal/version.Version={{.Version}}
+      - -X github.com/voska/loby/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/voska/loby/internal/version.Date={{.Date}}
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+archives:
+  - id: loby
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - skills/loby/SKILL.md
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+signs:
+  - cmd: cosign
+    artifacts: checksum
+    args:
+      - sign-blob
+      - "--yes"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+    output: true
+
+sboms:
+  - id: archive
+    artifacts: archive
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-snapshot"
+
+changelog:
+  use: github
+  sort: asc
+  groups:
+    - title: Features
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: Fixes
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: Refactors
+      regexp: "^.*refactor[(\\w)]*:+.*$"
+      order: 2
+    - title: Documentation
+      regexp: "^.*docs[(\\w)]*:+.*$"
+      order: 3
+    - title: Others
+      order: 999
+  filters:
+    exclude:
+      - "^chore:"
+      - "^test:"
+      - "^ci:"
+      - Merge pull request
+
+brews:
+  - name: loby
+    repository:
+      owner: voska
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: https://loby.voska.org
+    description: Canonical CLI for Lob — direct mail, address verification, and campaigns for humans and AI agents.
+    license: MIT
+    commit_author:
+      name: loby-bot
+      email: bot@voska.org
+    test: |
+      assert_match "loby", shell_output("#{bin}/loby version")
+    install: |
+      bin.install "loby"
+      generate_completions_from_executable(bin/"loby", "completion")
+
+scoops:
+  - name: loby
+    repository:
+      owner: voska
+      name: scoop-bucket
+      token: "{{ .Env.SCOOP_TAP_TOKEN }}"
+    homepage: https://loby.voska.org
+    description: Canonical CLI for Lob — direct mail, address verification, and campaigns for humans and AI agents.
+    license: MIT
+    commit_author:
+      name: loby-bot
+      email: bot@voska.org
+
+release:
+  github:
+    owner: voska
+    name: loby
+  draft: false
+  prerelease: auto
+  mode: append
+  header: |
+    ## loby {{ .Tag }}
+
+    Install via Homebrew:
+
+    ```
+    brew install voska/tap/loby
+    ```
+
+    Install via Scoop:
+
+    ```
+    scoop bucket add voska https://github.com/voska/scoop-bucket
+    scoop install loby
+    ```
+
+    Or curl directly:
+
+    ```
+    curl -fsSL https://loby.voska.org/install.sh | sh
+    ```
+  footer: |
+    ---
+    **Full Changelog:** https://github.com/voska/loby/compare/{{ .PreviousTag }}...{{ .Tag }}
