@@ -24,7 +24,7 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		kong.Description(description),
 		kong.UsageOnError(),
 		kong.ConfigureHelp(kong.HelpOptions{Compact: true, Summary: true}),
-		kong.Vars{"version": version.Get().Version},
+		kong.Vars{"version": version.Get().Version, "none": ""},
 		kong.Writers(stdout, stderr),
 	)
 	if err != nil {

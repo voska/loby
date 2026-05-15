@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>loby — Lob CLI for humans and AI agents</title>
+<meta name="description" content="loby is the canonical CLI for Lob (lob.com) — direct mail, address verification, and campaigns. Built for AI agents and humans alike.">
+<meta property="og:title" content="loby — Lob CLI">
+<meta property="og:description" content="The canonical CLI for Lob. brew install voska/tap/loby">
+<meta property="og:url" content="https://loby.voska.org">
+<meta name="theme-color" content="#0b0d10">
+<link rel="canonical" href="https://loby.voska.org">
+<style>
+  :root {
+    --bg: #0b0d10;
+    --fg: #e6e6e6;
+    --muted: #8a8f98;
+    --accent: #ffb84d;
+    --border: #1f2329;
+    --code-bg: #14171c;
+  }
+  * { box-sizing: border-box }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  h1 { font-size: 3rem; margin: 0 0 0.25rem; letter-spacing: -0.02em; }
+  .tag { color: var(--muted); font-size: 1.05rem; margin: 0 0 2.5rem; }
+  h2 { margin-top: 3rem; font-size: 1.35rem; letter-spacing: -0.01em; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; }
+  pre, code { font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; overflow-x: auto; font-size: 0.92rem; }
+  code { background: var(--code-bg); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.92em; }
+  pre code { background: transparent; padding: 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .install { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin: 1.5rem 0 0; }
+  .install pre { margin: 0; }
+  footer { margin-top: 5rem; color: var(--muted); font-size: 0.9rem; }
+  ul.grid { columns: 2; column-gap: 2rem; padding-left: 1.25rem; }
+  ul.grid li { break-inside: avoid; margin: 0.15rem 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>loby</h1>
+  <p class="tag">The canonical CLI for <a href="https://lob.com">Lob</a> — direct mail, address verification, and campaigns. For humans and AI agents.</p>
+
+  <h2>Install</h2>
+  <div class="install">
+    <pre><code># macOS + Linux
+brew install voska/tap/loby</code></pre>
+    <pre><code># Windows
+scoop bucket add voska \
+  https://github.com/voska/scoop-bucket
+scoop install loby</code></pre>
+    <pre><code># Any platform
+curl -fsSL https://loby.voska.org/install.sh | sh</code></pre>
+    <pre><code># From source
+go install github.com/voska/loby/cmd/loby@latest</code></pre>
+  </div>
+
+  <h2>Use</h2>
+<pre><code>loby auth login --key sk_test_…
+loby verify us "185 Berry St, San Francisco, CA 94107" --json
+loby postcards create \
+  --to adr_… --front @front.html --back @back.html \
+  --size 4x6 --json</code></pre>
+
+  <p>Every command supports <code>--json</code>, <code>--plain</code>, <code>--dry-run</code>, <code>--select</code>, named profiles, and auto-generated idempotency keys. Discover the full surface with <code>loby schema --json</code>.</p>
+
+  <h2>For AI agents</h2>
+
+  <p>Drop the canonical skill into your agent's skills directory:</p>
+<pre><code>mkdir -p ~/.claude/skills/loby
+curl -fsSL https://loby.voska.org/skill/SKILL.md \
+  > ~/.claude/skills/loby/SKILL.md</code></pre>
+
+  <p>Or install the full bundle (SKILL.md + command catalog + recipes + resource glossary):</p>
+<pre><code>curl -fsSL https://loby.voska.org/skill/install.sh | sh</code></pre>
+
+  <p>See <a href="/skill/SKILL.md">SKILL.md</a>, <a href="/skill/references/COMMANDS.md">COMMANDS.md</a>, <a href="/skill/references/RECIPES.md">RECIPES.md</a>, <a href="/skill/references/RESOURCES.md">RESOURCES.md</a>. Discovery manifest at <a href="/llms.txt">/llms.txt</a>.</p>
+
+  <h2>All 29 Lob resources, one binary</h2>
+  <ul class="grid">
+    <li>postcards</li>
+    <li>letters</li>
+    <li>checks</li>
+    <li>self-mailers</li>
+    <li>snap packs</li>
+    <li>cards</li>
+    <li>booklets</li>
+    <li>buckslips</li>
+    <li>addresses</li>
+    <li>verify (us/intl)</li>
+    <li>bulk verify</li>
+    <li>CSV verify</li>
+    <li>autocomplete</li>
+    <li>ZIP lookup</li>
+    <li>reverse geocode</li>
+    <li>identity validation</li>
+    <li>campaigns</li>
+    <li>informed delivery</li>
+    <li>creatives</li>
+    <li>uploads</li>
+    <li>templates (+ versions)</li>
+    <li>bank accounts</li>
+    <li>billing groups</li>
+    <li>QR codes</li>
+    <li>short URLs</li>
+    <li>events</li>
+    <li>resource proofs</li>
+    <li>accounts</li>
+  </ul>
+
+  <footer>
+    <p>MIT — © 2026 Matt Voska. Not affiliated with Lob, Inc. Source on <a href="https://github.com/voska/loby">GitHub</a>.</p>
+  </footer>
+</main>
+</body>
+</html>

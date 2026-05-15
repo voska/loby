@@ -1,0 +1,37 @@
+# loby
+
+> The canonical CLI for Lob (lob.com) — direct mail, address verification, and campaigns. Built for humans and AI agents. Single static Go binary. Covers all 29 Lob v1 resources with structured JSON output, stable exit codes, automatic idempotency keys, and full schema introspection.
+
+## Quickstart for agents
+
+- [SKILL.md](https://loby.voska.org/skill/SKILL.md): canonical agent skill (drop into ~/.claude/skills/loby/).
+- [install.sh](https://loby.voska.org/install.sh): autodetects OS+arch and installs the binary.
+- [Skill install.sh](https://loby.voska.org/skill/install.sh): installs SKILL.md + references bundle.
+
+## Reference
+
+- [COMMANDS.md](https://loby.voska.org/skill/references/COMMANDS.md): full command catalog.
+- [RECIPES.md](https://loby.voska.org/skill/references/RECIPES.md): verified end-to-end recipes.
+- [RESOURCES.md](https://loby.voska.org/skill/references/RESOURCES.md): Lob resource glossary.
+
+## Source
+
+- [GitHub](https://github.com/voska/loby): source, releases, issues.
+- [Homebrew tap](https://github.com/voska/homebrew-tap): brew install voska/tap/loby.
+- [Scoop bucket](https://github.com/voska/scoop-bucket): Windows distribution.
+
+## Installation
+
+```
+brew install voska/tap/loby
+scoop install loby
+curl -fsSL https://loby.voska.org/install.sh | sh
+go install github.com/voska/loby/cmd/loby@latest
+```
+
+## Optional
+
+- [README.md](https://github.com/voska/loby/blob/main/README.md)
+- [Design spec](https://github.com/voska/loby/blob/main/docs/superpowers/specs/2026-05-15-loby-design.md)
+- [CHANGELOG.md](https://github.com/voska/loby/blob/main/CHANGELOG.md)
+- [Lob API docs](https://docs.lob.com)

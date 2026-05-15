@@ -1,0 +1,3182 @@
+{
+  "name": "loby",
+  "help": "loby — canonical CLI for Lob (direct mail).\n\nSend postcards, letters, checks, and self-mailers; verify addresses; manage\ncampaigns and templates. Built for humans and AI agents: structured JSON on\nstdout, hints on stderr, stable exit codes, full schema introspection.\n\nQuick start:\n  loby auth login\n  loby addresses verify \"185 Berry St, San Francisco, CA\"\n  loby postcards create --to <addr_id> --front front.html --back back.html\n\nAgent introspection:\n  loby schema --json\n  loby exit-codes --json\n  loby version --json\n\nDocs: https://loby.voska.org",
+  "flags": [
+    {
+      "name": "help",
+      "short": "h",
+      "help": "Show context-sensitive help.",
+      "type": "kong.helpFlag"
+    },
+    {
+      "name": "json",
+      "short": "j",
+      "help": "Emit JSON to stdout.",
+      "type": "bool",
+      "env": [
+        "LOBY_JSON"
+      ]
+    },
+    {
+      "name": "plain",
+      "short": "p",
+      "help": "Emit tab-separated values to stdout.",
+      "type": "bool",
+      "env": [
+        "LOBY_PLAIN"
+      ]
+    },
+    {
+      "name": "results-only",
+      "help": "Strip the metadata envelope; emit data only.",
+      "type": "bool"
+    },
+    {
+      "name": "select",
+      "help": "Project output to a subset of fields (comma-separated, dot-paths). e.g. --select id,to.city",
+      "type": "string"
+    },
+    {
+      "name": "no-color",
+      "help": "Disable ANSI color in human output.",
+      "type": "bool",
+      "env": [
+        "NO_COLOR"
+      ]
+    },
+    {
+      "name": "quiet",
+      "short": "q",
+      "help": "Suppress stderr hints; emit bare values.",
+      "type": "bool"
+    },
+    {
+      "name": "no-input",
+      "help": "Fail rather than prompt for input. Implied when stdin is not a TTY.",
+      "type": "bool"
+    },
+    {
+      "name": "api-key",
+      "help": "Lob API key (overrides keyring + env).",
+      "type": "string",
+      "env": [
+        "LOB_API_KEY"
+      ]
+    },
+    {
+      "name": "profile",
+      "help": "Named auth profile.",
+      "type": "string",
+      "default": "default",
+      "env": [
+        "LOB_PROFILE"
+      ]
+    },
+    {
+      "name": "dry-run",
+      "short": "n",
+      "help": "Preview the request body as JSON; do not execute mutations.",
+      "type": "bool"
+    },
+    {
+      "name": "idempotency-key",
+      "help": "Override the auto-generated Idempotency-Key for create operations.",
+      "type": "string"
+    },
+    {
+      "name": "debug",
+      "help": "Verbose logging to stderr.",
+      "type": "bool",
+      "env": [
+        "LOBY_DEBUG"
+      ]
+    }
+  ],
+  "subcommands": [
+    {
+      "name": "version",
+      "help": "Print build information."
+    },
+    {
+      "name": "schema",
+      "help": "Print the CLI command tree as JSON (agent introspection).",
+      "positional": [
+        {
+          "name": "path",
+          "help": "Optional command path (e.g. 'postcards create') to scope output.",
+          "type": "[]string"
+        }
+      ]
+    },
+    {
+      "name": "exit-codes",
+      "help": "Print the canonical exit-code table.",
+      "aliases": [
+        "exitcodes",
+        "exit"
+      ]
+    },
+    {
+      "name": "auth",
+      "help": "Manage Lob API credentials.",
+      "subcommands": [
+        {
+          "name": "login",
+          "help": "Store a Lob API key in the OS keychain under a profile.",
+          "flags": [
+            {
+              "name": "key",
+              "help": "API key to store under the active profile. Required when --no-input is set.",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "name": "logout",
+          "help": "Remove a stored API key."
+        },
+        {
+          "name": "status",
+          "help": "Print the active auth profile and key prefix."
+        },
+        {
+          "name": "list",
+          "help": "List configured profiles."
+        }
+      ]
+    },
+    {
+      "name": "account",
+      "help": "Show the active Lob account profile and balance."
+    },
+    {
+      "name": "addresses",
+      "help": "Manage saved addresses, verify, autocomplete.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Save an address to the Lob address book.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "Internal description (≤255 chars).",
+              "type": "string"
+            },
+            {
+              "name": "name",
+              "help": "Recipient name (required if Company is blank).",
+              "type": "string"
+            },
+            {
+              "name": "company",
+              "help": "Recipient company (required if Name is blank).",
+              "type": "string"
+            },
+            {
+              "name": "email",
+              "help": "Recipient email.",
+              "type": "string"
+            },
+            {
+              "name": "phone",
+              "help": "Recipient phone.",
+              "type": "string"
+            },
+            {
+              "name": "line1",
+              "help": "Street line 1.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "line2",
+              "help": "Street line 2.",
+              "type": "string"
+            },
+            {
+              "name": "city",
+              "help": "City.",
+              "type": "string"
+            },
+            {
+              "name": "state",
+              "help": "State (two-letter US code or full name).",
+              "type": "string"
+            },
+            {
+              "name": "zip",
+              "help": "ZIP code or international postal code.",
+              "type": "string"
+            },
+            {
+              "name": "country",
+              "help": "Two-letter ISO country code.",
+              "type": "string",
+              "default": "US"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs (repeatable).",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a saved address by ID.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Address ID (adr_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List saved addresses.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results per page (1-100).",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor: items before this ID.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor: items after this ID.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count in response.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "help": "Delete a saved address.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Address ID (adr_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "verify",
+          "help": "Verify a US address (shortcut for 'verify us').",
+          "flags": [
+            {
+              "name": "recipient",
+              "help": "Recipient name.",
+              "type": "string"
+            },
+            {
+              "name": "primary",
+              "help": "Primary line (street).",
+              "type": "string"
+            },
+            {
+              "name": "secondary",
+              "help": "Secondary line (apt/suite).",
+              "type": "string"
+            },
+            {
+              "name": "city",
+              "help": "City.",
+              "type": "string"
+            },
+            {
+              "name": "state",
+              "help": "State.",
+              "type": "string"
+            },
+            {
+              "name": "zip",
+              "help": "ZIP code.",
+              "type": "string"
+            },
+            {
+              "name": "case",
+              "help": "Case transformation.",
+              "type": "string",
+              "default": "default",
+              "enum": [
+                "upper",
+                "proper",
+                "default"
+              ]
+            }
+          ],
+          "positional": [
+            {
+              "name": "address",
+              "help": "Single-line address (e.g. \"185 Berry St, San Francisco, CA 94107\").",
+              "type": "[]string"
+            }
+          ]
+        },
+        {
+          "name": "autocomplete",
+          "help": "Autocomplete a US address prefix.",
+          "flags": [
+            {
+              "name": "city",
+              "help": "Optional city filter.",
+              "type": "string"
+            },
+            {
+              "name": "state",
+              "help": "Optional state filter.",
+              "type": "string"
+            },
+            {
+              "name": "zip",
+              "help": "Optional ZIP filter.",
+              "type": "string"
+            },
+            {
+              "name": "geo-ip-sort",
+              "help": "Bias suggestions by client IP.",
+              "type": "bool"
+            },
+            {
+              "name": "case",
+              "help": "Case transformation.",
+              "type": "string",
+              "default": "default",
+              "enum": [
+                "upper",
+                "proper",
+                "default"
+              ]
+            }
+          ],
+          "positional": [
+            {
+              "name": "prefix",
+              "help": "Partial street address prefix.",
+              "type": "[]string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "verify",
+      "help": "Verify US or international addresses.",
+      "subcommands": [
+        {
+          "name": "us",
+          "help": "Verify a US address.",
+          "flags": [
+            {
+              "name": "recipient",
+              "help": "Recipient name.",
+              "type": "string"
+            },
+            {
+              "name": "primary",
+              "help": "Primary line (street).",
+              "type": "string"
+            },
+            {
+              "name": "secondary",
+              "help": "Secondary line (apt/suite).",
+              "type": "string"
+            },
+            {
+              "name": "city",
+              "help": "City.",
+              "type": "string"
+            },
+            {
+              "name": "state",
+              "help": "State.",
+              "type": "string"
+            },
+            {
+              "name": "zip",
+              "help": "ZIP code.",
+              "type": "string"
+            },
+            {
+              "name": "case",
+              "help": "Case transformation.",
+              "type": "string",
+              "default": "default",
+              "enum": [
+                "upper",
+                "proper",
+                "default"
+              ]
+            }
+          ],
+          "positional": [
+            {
+              "name": "address",
+              "help": "Single-line address (e.g. \"185 Berry St, San Francisco, CA 94107\").",
+              "type": "[]string"
+            }
+          ]
+        },
+        {
+          "name": "intl",
+          "help": "Verify an international address.",
+          "flags": [
+            {
+              "name": "recipient",
+              "help": "Recipient name.",
+              "type": "string"
+            },
+            {
+              "name": "primary",
+              "help": "Primary line.",
+              "type": "string"
+            },
+            {
+              "name": "secondary",
+              "help": "Secondary line.",
+              "type": "string"
+            },
+            {
+              "name": "city",
+              "help": "City.",
+              "type": "string"
+            },
+            {
+              "name": "state",
+              "help": "State / province / region.",
+              "type": "string"
+            },
+            {
+              "name": "postal",
+              "help": "Postal code.",
+              "type": "string"
+            },
+            {
+              "name": "country",
+              "help": "Two-letter ISO country code.",
+              "type": "string",
+              "required": true
+            }
+          ],
+          "positional": [
+            {
+              "name": "address",
+              "help": "Single-line address.",
+              "type": "[]string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "zip",
+      "help": "Look up city/state for a US ZIP code.",
+      "positional": [
+        {
+          "name": "zip",
+          "help": "5-digit US ZIP code.",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "geo",
+      "help": "Reverse-geocode lat/lng to ZIP codes.",
+      "subcommands": [
+        {
+          "name": "reverse",
+          "help": "Reverse-geocode lat/lng to ZIP codes.",
+          "positional": [
+            {
+              "name": "latitude",
+              "help": "Latitude.",
+              "type": "float64",
+              "required": true
+            },
+            {
+              "name": "longitude",
+              "help": "Longitude.",
+              "type": "float64",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "identity",
+      "help": "Verify an individual's identity at an address.",
+      "subcommands": [
+        {
+          "name": "verify",
+          "help": "Verify the identity of a recipient.",
+          "flags": [
+            {
+              "name": "first-name",
+              "help": "First name.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "last-name",
+              "help": "Last name.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "line1",
+              "help": "Address line 1.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "line2",
+              "help": "Address line 2.",
+              "type": "string"
+            },
+            {
+              "name": "city",
+              "help": "City.",
+              "type": "string"
+            },
+            {
+              "name": "state",
+              "help": "State.",
+              "type": "string"
+            },
+            {
+              "name": "zip",
+              "help": "ZIP code.",
+              "type": "string"
+            },
+            {
+              "name": "country",
+              "help": "Country code.",
+              "type": "string",
+              "default": "US"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve an identity validation.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Identity validation ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bulk",
+      "help": "Bulk verification operations (sync arrays and async CSV jobs).",
+      "subcommands": [
+        {
+          "name": "us",
+          "help": "Bulk US address verifications (synchronous JSON array).",
+          "flags": [
+            {
+              "name": "addresses",
+              "help": "JSON array of address objects (or @file.json).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "case",
+              "help": "Case transformation.",
+              "type": "string",
+              "default": "default",
+              "enum": [
+                "upper",
+                "proper",
+                "default"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "intl",
+          "help": "Bulk international address verifications (synchronous JSON array).",
+          "flags": [
+            {
+              "name": "addresses",
+              "help": "JSON array of address objects (or @file.json).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "csv",
+          "help": "CSV-based async US verification jobs.",
+          "subcommands": [
+            {
+              "name": "submit",
+              "help": "Submit a CSV file for async US verification.",
+              "flags": [
+                {
+                  "name": "description",
+                  "help": "Internal description.",
+                  "type": "string"
+                }
+              ],
+              "positional": [
+                {
+                  "name": "path",
+                  "help": "Path to CSV file with addresses.",
+                  "type": "string",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "status",
+              "help": "Check status of a CSV verification job.",
+              "positional": [
+                {
+                  "name": "id",
+                  "help": "Job ID (us_csv_…).",
+                  "type": "string",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "download",
+              "help": "Download results of a completed CSV verification job.",
+              "positional": [
+                {
+                  "name": "id",
+                  "help": "Job ID (us_csv_…).",
+                  "type": "string",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "list",
+              "help": "List CSV verification jobs.",
+              "flags": [
+                {
+                  "name": "limit",
+                  "help": "Max results.",
+                  "type": "int",
+                  "default": "10"
+                },
+                {
+                  "name": "before",
+                  "help": "Pagination cursor before.",
+                  "type": "string"
+                },
+                {
+                  "name": "after",
+                  "help": "Pagination cursor after.",
+                  "type": "string"
+                },
+                {
+                  "name": "include-total",
+                  "help": "Include total count.",
+                  "type": "bool"
+                }
+              ]
+            },
+            {
+              "name": "delete",
+              "help": "Delete a CSV verification job.",
+              "flags": [
+                {
+                  "name": "confirm",
+                  "help": "Required for destructive operations.",
+                  "type": "bool"
+                },
+                {
+                  "name": "force",
+                  "help": "Alias for --confirm.",
+                  "type": "bool"
+                }
+              ],
+              "positional": [
+                {
+                  "name": "id",
+                  "help": "Job ID.",
+                  "type": "string",
+                  "required": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "postcards",
+      "help": "Create, retrieve, list, and cancel postcards.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Send a postcard.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "Internal description (≤255 chars).",
+              "type": "string"
+            },
+            {
+              "name": "to",
+              "help": "Recipient address ID (adr_…) or JSON object.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "from",
+              "help": "Sender address ID (adr_…) or JSON object.",
+              "type": "string"
+            },
+            {
+              "name": "front",
+              "help": "HTML, URL, template ID (tmpl_…), or @file.html for the front.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "back",
+              "help": "HTML, URL, template ID (tmpl_…), or @file.html for the back.",
+              "type": "string"
+            },
+            {
+              "name": "size",
+              "help": "Postcard size.",
+              "type": "string",
+              "default": "4x6",
+              "enum": [
+                "4x6",
+                "6x9",
+                "6x11"
+              ]
+            },
+            {
+              "name": "mailing-date",
+              "help": "Scheduled mailing date (YYYY-MM-DD or RFC3339).",
+              "type": "string"
+            },
+            {
+              "name": "mail-type",
+              "help": "Delivery class.",
+              "type": "string",
+              "default": "usps_first_class",
+              "enum": [
+                "usps_first_class",
+                "usps_standard"
+              ]
+            },
+            {
+              "name": "use-type",
+              "help": "Use type.",
+              "type": "string",
+              "default": "marketing",
+              "enum": [
+                "marketing",
+                "operational"
+              ]
+            },
+            {
+              "name": "merge-variables",
+              "help": "JSON object of template variables (or @file.json).",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs (repeatable).",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a postcard by ID.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Postcard ID (psc_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List postcards.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results (1-100).",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "cancel",
+          "help": "Cancel a postcard before mailing.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Postcard ID (psc_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "letters",
+      "help": "Create, retrieve, list, and cancel letters.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Send a letter.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "to",
+              "help": "Recipient address ID or JSON.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "from",
+              "help": "Sender address ID or JSON.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "file",
+              "help": "PDF, HTML, URL, or template ID. Use @file.pdf for a local file.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "color",
+              "help": "Print in color.",
+              "type": "bool"
+            },
+            {
+              "name": "double-sided",
+              "help": "Double-sided printing.",
+              "type": "bool",
+              "default": "true"
+            },
+            {
+              "name": "address-placement",
+              "help": "Address placement.",
+              "type": "string",
+              "default": "top_first_page",
+              "enum": [
+                "top_first_page",
+                "insert_blank_page"
+              ]
+            },
+            {
+              "name": "mailing-date",
+              "help": "Scheduled mailing date.",
+              "type": "string"
+            },
+            {
+              "name": "mail-type",
+              "help": "Delivery class.",
+              "type": "string",
+              "default": "usps_first_class",
+              "enum": [
+                "usps_first_class",
+                "usps_standard"
+              ]
+            },
+            {
+              "name": "use-type",
+              "help": "Use type.",
+              "type": "string",
+              "default": "operational",
+              "enum": [
+                "marketing",
+                "operational"
+              ]
+            },
+            {
+              "name": "extra-service",
+              "help": "Tracked / certified service.",
+              "type": "string",
+              "enum": [
+                "certified",
+                "registered",
+                "certified_return_receipt"
+              ]
+            },
+            {
+              "name": "perforated-page",
+              "help": "Page index to perforate (1-based).",
+              "type": "int"
+            },
+            {
+              "name": "return-envelope",
+              "help": "Return envelope ID.",
+              "type": "string"
+            },
+            {
+              "name": "custom-envelope",
+              "help": "Custom envelope ID.",
+              "type": "string"
+            },
+            {
+              "name": "merge-variables",
+              "help": "JSON object of template variables (or @file.json).",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a letter by ID.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Letter ID (ltr_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List letters.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results (1-100).",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "cancel",
+          "help": "Cancel a letter before mailing.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Letter ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "checks",
+      "help": "Create, retrieve, list, and cancel checks.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Mail a check.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "to",
+              "help": "Recipient address ID or JSON.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "from",
+              "help": "Sender address ID or JSON.",
+              "type": "string"
+            },
+            {
+              "name": "bank-account",
+              "help": "Bank account ID (bank_…).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "amount",
+              "help": "Amount in dollars (max $9,999,999.99).",
+              "type": "float64",
+              "required": true
+            },
+            {
+              "name": "memo",
+              "help": "Memo line (≤40 chars).",
+              "type": "string"
+            },
+            {
+              "name": "message",
+              "help": "Inset message printed below the check.",
+              "type": "string"
+            },
+            {
+              "name": "check-number",
+              "help": "Specific check number (default: next sequential).",
+              "type": "int"
+            },
+            {
+              "name": "logo",
+              "help": "Logo: URL, ID, or @file.png.",
+              "type": "string"
+            },
+            {
+              "name": "attachment",
+              "help": "Single-page attachment (PDF/HTML/URL/template, or @file).",
+              "type": "string"
+            },
+            {
+              "name": "mailing-date",
+              "help": "Scheduled mailing date.",
+              "type": "string"
+            },
+            {
+              "name": "mail-type",
+              "help": "Delivery class.",
+              "type": "string",
+              "default": "usps_first_class",
+              "enum": [
+                "usps_first_class",
+                "usps_standard"
+              ]
+            },
+            {
+              "name": "use-type",
+              "help": "Use type.",
+              "type": "string",
+              "default": "operational",
+              "enum": [
+                "marketing",
+                "operational"
+              ]
+            },
+            {
+              "name": "merge-variables",
+              "help": "JSON object of template variables (or @file.json).",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a check by ID.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Check ID (chk_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List checks.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results (1-100).",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "cancel",
+          "help": "Cancel a check before mailing.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Check ID (chk_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "self-mailers",
+      "help": "Create, retrieve, list, and cancel self-mailers.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Send a self-mailer.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "to",
+              "help": "Recipient address ID or JSON.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "from",
+              "help": "Sender address ID or JSON.",
+              "type": "string"
+            },
+            {
+              "name": "outside",
+              "help": "Outside artwork: HTML/URL/template ID/@file.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "inside",
+              "help": "Inside artwork: HTML/URL/template ID/@file.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "size",
+              "help": "Self-mailer size.",
+              "type": "string",
+              "default": "6x18_bifold",
+              "enum": [
+                "6x18_bifold",
+                "12x9_bifold",
+                "11x9_bifold"
+              ]
+            },
+            {
+              "name": "mailing-date",
+              "help": "Scheduled mailing date.",
+              "type": "string"
+            },
+            {
+              "name": "mail-type",
+              "help": "Delivery class.",
+              "type": "string",
+              "default": "usps_first_class",
+              "enum": [
+                "usps_first_class",
+                "usps_standard"
+              ]
+            },
+            {
+              "name": "use-type",
+              "help": "Use type.",
+              "type": "string",
+              "default": "marketing",
+              "enum": [
+                "marketing",
+                "operational"
+              ]
+            },
+            {
+              "name": "merge-variables",
+              "help": "JSON object of template variables (or @file.json).",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a self-mailer by ID.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Self-mailer ID (sfm_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List self-mailers.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results (1-100).",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "cancel",
+          "help": "Cancel a self-mailer before mailing.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Self-mailer ID (sfm_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "snap-packs",
+      "help": "Create, retrieve, list, and cancel snap packs.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Send a snap pack.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "to",
+              "help": "Recipient address ID or JSON.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "from",
+              "help": "Sender address ID or JSON.",
+              "type": "string"
+            },
+            {
+              "name": "outside",
+              "help": "Outside artwork (HTML/URL/template/@file).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "inside",
+              "help": "Inside artwork (HTML/URL/template/@file).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "size",
+              "help": "Snap pack size.",
+              "type": "string",
+              "default": "8.5x11",
+              "enum": [
+                "8.5x11"
+              ]
+            },
+            {
+              "name": "color",
+              "help": "Print in color.",
+              "type": "bool",
+              "default": "true"
+            },
+            {
+              "name": "mailing-date",
+              "help": "Scheduled mailing date.",
+              "type": "string"
+            },
+            {
+              "name": "mail-type",
+              "help": "Delivery class.",
+              "type": "string",
+              "default": "usps_first_class",
+              "enum": [
+                "usps_first_class"
+              ]
+            },
+            {
+              "name": "use-type",
+              "help": "Use type.",
+              "type": "string",
+              "default": "operational",
+              "enum": [
+                "marketing",
+                "operational"
+              ]
+            },
+            {
+              "name": "merge-variables",
+              "help": "JSON object of template variables.",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a snap pack by ID.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Snap pack ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List snap packs.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results (1-100).",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "cancel",
+          "help": "Cancel a snap pack before mailing.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Snap pack ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cards",
+      "help": "Manage card stock artwork.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Create a card.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "front",
+              "help": "Front artwork (HTML/URL/template/@file).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "back",
+              "help": "Back artwork (HTML/URL/template/@file).",
+              "type": "string"
+            },
+            {
+              "name": "size",
+              "help": "Card size.",
+              "type": "string",
+              "default": "3.5x2",
+              "enum": [
+                "2.125x3.375",
+                "2.5x2.5",
+                "2.75x2.75",
+                "2x3.5",
+                "3.5x2",
+                "3.5x4",
+                "3.5x5",
+                "4x6",
+                "5x5",
+                "5x7",
+                "6x9",
+                "8.5x11"
+              ]
+            },
+            {
+              "name": "stock",
+              "help": "Stock type.",
+              "type": "string",
+              "enum": [
+                "14PT_AQ",
+                "14PT_AQ_DULL",
+                "14PT_UV",
+                "14PT_MATTE",
+                "16PT_AQ",
+                "16PT_UV"
+              ]
+            },
+            {
+              "name": "auto-reorder",
+              "help": "Auto-reorder when low.",
+              "type": "bool"
+            },
+            {
+              "name": "reorder-quantity",
+              "help": "Quantity per reorder.",
+              "type": "int"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a card.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Card ID (card_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List cards.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "help": "Delete a card.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Card ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "booklets",
+      "help": "Manage booklet artwork.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Create a booklet.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "cover",
+              "help": "Cover artwork (HTML/URL/template/@file).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "inside",
+              "help": "Inside artwork (multi-page PDF/HTML, or @file).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "size",
+              "help": "Booklet size.",
+              "type": "string",
+              "default": "8.5x11",
+              "enum": [
+                "8.5x11"
+              ]
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a booklet.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Booklet ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List booklets.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "help": "Delete a booklet.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Booklet ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "buckslips",
+      "help": "Manage buckslip artwork.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Create a buckslip.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "front",
+              "help": "Front artwork (HTML/URL/template/@file).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "back",
+              "help": "Back artwork (HTML/URL/template/@file).",
+              "type": "string"
+            },
+            {
+              "name": "size",
+              "help": "Buckslip size.",
+              "type": "string",
+              "default": "8.75x3.75",
+              "enum": [
+                "8.75x3.75"
+              ]
+            },
+            {
+              "name": "stock",
+              "help": "Stock type.",
+              "type": "string"
+            },
+            {
+              "name": "auto-reorder",
+              "help": "Auto-reorder when low.",
+              "type": "bool"
+            },
+            {
+              "name": "reorder-quantity",
+              "help": "Quantity per reorder.",
+              "type": "int"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a buckslip.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Buckslip ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List buckslips.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "help": "Delete a buckslip.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Buckslip ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "campaigns",
+      "help": "Manage direct-mail campaigns.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Create a campaign.",
+          "flags": [
+            {
+              "name": "name",
+              "help": "Campaign name.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "schedule-type",
+              "help": "Schedule type.",
+              "type": "string",
+              "default": "immediate",
+              "enum": [
+                "immediate",
+                "in_future"
+              ]
+            },
+            {
+              "name": "send-date",
+              "help": "Send date (RFC3339, required for schedule-type=in_future).",
+              "type": "string"
+            },
+            {
+              "name": "billing-group-id",
+              "help": "Billing group ID.",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            },
+            {
+              "name": "use-type",
+              "help": "Use type.",
+              "type": "string",
+              "default": "marketing",
+              "enum": [
+                "marketing",
+                "operational"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a campaign.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Campaign ID (cmp_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List campaigns.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "update",
+          "help": "Update a campaign.",
+          "flags": [
+            {
+              "name": "name",
+              "help": "New name.",
+              "type": "string"
+            },
+            {
+              "name": "description",
+              "help": "New description.",
+              "type": "string"
+            },
+            {
+              "name": "send-date",
+              "help": "New send date.",
+              "type": "string"
+            },
+            {
+              "name": "billing-group-id",
+              "help": "Billing group ID.",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Replace metadata.",
+              "type": "map[string]string"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Campaign ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "help": "Delete a campaign.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Campaign ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "send",
+          "help": "Submit a campaign for processing (no longer editable).",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required to send (campaign cannot be edited after).",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Campaign ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "informed-delivery",
+      "help": "Manage USPS Informed Delivery campaigns.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Create an informed delivery campaign.",
+          "flags": [
+            {
+              "name": "name",
+              "help": "Campaign name.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "campaign-id",
+              "help": "Parent campaign ID (cmp_…).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "image",
+              "help": "Image URL or @file.",
+              "type": "string"
+            },
+            {
+              "name": "target-url",
+              "help": "Click-through URL.",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve an informed delivery campaign.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Informed delivery campaign ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List informed delivery campaigns.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "creatives",
+      "help": "Manage campaign creatives.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Create a creative for a campaign.",
+          "flags": [
+            {
+              "name": "campaign-id",
+              "help": "Parent campaign ID (cmp_…).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "resource-type",
+              "help": "Resource type.",
+              "type": "string",
+              "required": true,
+              "enum": [
+                "postcard",
+                "letter",
+                "self_mailer",
+                "snap_pack"
+              ]
+            },
+            {
+              "name": "from",
+              "help": "Sender address ID or JSON.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "details",
+              "help": "Detail JSON (HTML/file refs etc., or @file.json).",
+              "type": "string"
+            },
+            {
+              "name": "mail-type",
+              "help": "Delivery class.",
+              "type": "string",
+              "default": "usps_first_class",
+              "enum": [
+                "usps_first_class",
+                "usps_standard"
+              ]
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a creative.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Creative ID (crv_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "update",
+          "help": "Update a creative.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "New description.",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Replace metadata.",
+              "type": "map[string]string"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Creative ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "uploads",
+      "help": "Manage campaign CSV uploads.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Create an upload metadata record for a campaign.",
+          "flags": [
+            {
+              "name": "campaign-id",
+              "help": "Campaign ID (cmp_…).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "column-mapping",
+              "help": "Column mapping JSON (or @file.json).",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            },
+            {
+              "name": "required-address-column",
+              "help": "Required address column name.",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "name": "file",
+          "help": "Upload a CSV file to an existing upload record.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Upload ID.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "path",
+              "help": "Path to CSV file.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve an upload.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Upload ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List uploads.",
+          "flags": [
+            {
+              "name": "campaign-id",
+              "help": "Filter by campaign ID.",
+              "type": "string"
+            },
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "help": "Delete an upload.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Upload ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "help": "Get upload processing status.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Upload ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "errors",
+          "help": "Download upload validation errors as CSV.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Upload ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "templates",
+      "help": "Manage reusable HTML templates.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Create a template (HTML stored at Lob with merge variables).",
+          "flags": [
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "html",
+              "help": "HTML body (or @file.html).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "engine-type",
+              "help": "Template engine.",
+              "type": "string",
+              "default": "handlebars",
+              "enum": [
+                "legacy",
+                "handlebars"
+              ]
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a template.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Template ID (tmpl_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List templates.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "update",
+          "help": "Update a template's description or metadata.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "New description.",
+              "type": "string"
+            },
+            {
+              "name": "published-version",
+              "help": "ID of the version to mark as published.",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Replace metadata.",
+              "type": "map[string]string"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Template ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "help": "Delete a template.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Template ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "versions",
+          "help": "Manage template versions.",
+          "subcommands": [
+            {
+              "name": "create",
+              "help": "Create a new template version (publishes HTML).",
+              "flags": [
+                {
+                  "name": "description",
+                  "help": "Version description.",
+                  "type": "string"
+                },
+                {
+                  "name": "html",
+                  "help": "HTML body (or @file.html).",
+                  "type": "string",
+                  "required": true
+                },
+                {
+                  "name": "engine-type",
+                  "help": "Template engine.",
+                  "type": "string",
+                  "default": "handlebars",
+                  "enum": [
+                    "legacy",
+                    "handlebars"
+                  ]
+                }
+              ],
+              "positional": [
+                {
+                  "name": "template-id",
+                  "help": "Parent template ID (tmpl_…).",
+                  "type": "string",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "get",
+              "help": "Retrieve a template version.",
+              "positional": [
+                {
+                  "name": "template-id",
+                  "help": "Parent template ID.",
+                  "type": "string",
+                  "required": true
+                },
+                {
+                  "name": "version-id",
+                  "help": "Version ID (vrsn_…).",
+                  "type": "string",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "list",
+              "help": "List template versions.",
+              "flags": [
+                {
+                  "name": "limit",
+                  "help": "Max results.",
+                  "type": "int",
+                  "default": "10"
+                },
+                {
+                  "name": "before",
+                  "help": "Pagination cursor before.",
+                  "type": "string"
+                },
+                {
+                  "name": "after",
+                  "help": "Pagination cursor after.",
+                  "type": "string"
+                },
+                {
+                  "name": "include-total",
+                  "help": "Include total count.",
+                  "type": "bool"
+                }
+              ],
+              "positional": [
+                {
+                  "name": "template-id",
+                  "help": "Parent template ID.",
+                  "type": "string",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "update",
+              "help": "Update a template version's description.",
+              "flags": [
+                {
+                  "name": "description",
+                  "help": "New description.",
+                  "type": "string",
+                  "required": true
+                }
+              ],
+              "positional": [
+                {
+                  "name": "template-id",
+                  "help": "Parent template ID.",
+                  "type": "string",
+                  "required": true
+                },
+                {
+                  "name": "version-id",
+                  "help": "Version ID.",
+                  "type": "string",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "delete",
+              "help": "Delete a template version.",
+              "flags": [
+                {
+                  "name": "confirm",
+                  "help": "Required for destructive operations.",
+                  "type": "bool"
+                },
+                {
+                  "name": "force",
+                  "help": "Alias for --confirm.",
+                  "type": "bool"
+                }
+              ],
+              "positional": [
+                {
+                  "name": "template-id",
+                  "help": "Parent template ID.",
+                  "type": "string",
+                  "required": true
+                },
+                {
+                  "name": "version-id",
+                  "help": "Version ID.",
+                  "type": "string",
+                  "required": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bank-accounts",
+      "help": "Manage bank accounts for check mailing.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Add a bank account.",
+          "flags": [
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "routing-number",
+              "help": "9-digit routing number.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "account-number",
+              "help": "Account number.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "account-type",
+              "help": "Account type.",
+              "type": "string",
+              "required": true,
+              "enum": [
+                "individual",
+                "company"
+              ]
+            },
+            {
+              "name": "signatory",
+              "help": "Full name of signatory.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a bank account.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Bank account ID (bank_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List bank accounts.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "help": "Delete a bank account.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Bank account ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "verify",
+          "help": "Verify a bank account with the test deposits.",
+          "flags": [
+            {
+              "name": "amounts",
+              "help": "Two test-deposit amounts in cents (e.g. --amounts 11,35).",
+              "type": "[]int",
+              "required": true
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Bank account ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "billing-groups",
+      "help": "Manage billing groups.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Create a billing group.",
+          "flags": [
+            {
+              "name": "name",
+              "help": "Group name.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "description",
+              "help": "Group description.",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a billing group.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Billing group ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List billing groups.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "update",
+          "help": "Update a billing group.",
+          "flags": [
+            {
+              "name": "name",
+              "help": "New name.",
+              "type": "string"
+            },
+            {
+              "name": "description",
+              "help": "New description.",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Replace metadata.",
+              "type": "map[string]string"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Billing group ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "qr-codes",
+      "help": "Create and inspect QR codes.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Create a QR code with a redirect URL.",
+          "flags": [
+            {
+              "name": "redirect-url",
+              "help": "Destination URL the code resolves to.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "position",
+              "help": "Position on artwork.",
+              "type": "string",
+              "default": "bottom_right",
+              "enum": [
+                "top_left",
+                "top_right",
+                "bottom_left",
+                "bottom_right",
+                "relative"
+              ]
+            },
+            {
+              "name": "width",
+              "help": "Width in inches.",
+              "type": "string"
+            },
+            {
+              "name": "top",
+              "help": "Top offset in inches.",
+              "type": "string"
+            },
+            {
+              "name": "right",
+              "help": "Right offset in inches.",
+              "type": "string"
+            },
+            {
+              "name": "bottom",
+              "help": "Bottom offset in inches.",
+              "type": "string"
+            },
+            {
+              "name": "left",
+              "help": "Left offset in inches.",
+              "type": "string"
+            },
+            {
+              "name": "pages",
+              "help": "Pages to place QR code on (e.g. 'front', 'back', '1-3').",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a QR code.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "QR code ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List QR codes.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "short-urls",
+      "help": "Create and inspect short URLs.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Create a tracked short URL.",
+          "flags": [
+            {
+              "name": "redirect-url",
+              "help": "Destination URL.",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a short URL.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Short URL ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List short URLs.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "events",
+      "help": "List and tail Lob events.",
+      "subcommands": [
+        {
+          "name": "list",
+          "help": "List events.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results (1-100).",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "event-type",
+              "help": "Filter by event type (e.g. postcard.created).",
+              "type": "string"
+            },
+            {
+              "name": "resource-type",
+              "help": "Filter by resource type.",
+              "type": "string"
+            },
+            {
+              "name": "date-created",
+              "help": "Filter on date_created (RFC3339 range, e.g. 'gte:2026-01-01,lt:2026-02-01').",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "name": "tail",
+          "help": "Stream events as NDJSON (poll every 5s).",
+          "flags": [
+            {
+              "name": "interval",
+              "help": "Poll interval.",
+              "type": "time.Duration",
+              "default": "5s"
+            },
+            {
+              "name": "resource-type",
+              "help": "Filter by resource type.",
+              "type": "string"
+            },
+            {
+              "name": "event-type",
+              "help": "Filter by event type.",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a single event by ID.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Event ID (evt_…).",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "resource-proofs",
+      "help": "Retrieve resource proof previews.",
+      "subcommands": [
+        {
+          "name": "get",
+          "help": "Retrieve a resource proof (PDF preview of a printed asset).",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Resource proof ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
