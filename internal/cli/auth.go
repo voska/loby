@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 
+	"golang.org/x/term"
+
 	"github.com/voska/loby/internal/auth"
 	"github.com/voska/loby/internal/errfmt"
 )
@@ -93,7 +95,12 @@ type Status struct {
 
 // Run inspects the credential precedence chain and reports the result.
 func (c *AuthStatusCmd) Run(g *Globals) error {
-	store, _ := auth.Open()
+	// auth status is read-only. A keyring that can't open is a config_error,
+	// not "not configured" — surface it so the agent can recover.
+	store, openErr := auth.Open()
+	if openErr != nil {
+		return openErr
+	}
 	resolved, err := auth.Resolve(g.APIKey, g.Profile, store)
 	s := Status{
 		Profile:    resolved.Profile,
@@ -151,7 +158,18 @@ func promptKey(stdin io.Reader, stderr io.Writer, profile string) (string, error
 	if stderr == nil {
 		stderr = os.Stderr
 	}
-	_, _ = fmt.Fprintf(stderr, "Paste your Lob API key for profile %q (won't be echoed by your terminal if connected to a TTY):\n", profile)
+	// If stdin is a real TTY, suppress echo so the secret never lands in scrollback.
+	// Non-TTY (pipe, redirect) is treated as a non-interactive read.
+	if f, ok := stdin.(*os.File); ok && term.IsTerminal(int(f.Fd())) {
+		_, _ = fmt.Fprintf(stderr, "Lob API key for profile %q (input hidden): ", profile)
+		raw, err := term.ReadPassword(int(f.Fd()))
+		_, _ = fmt.Fprintln(stderr)
+		if err != nil {
+			return "", errfmt.Wrap(errfmt.GeneralError, fmt.Errorf("read key: %w", err))
+		}
+		return strings.TrimSpace(string(raw)), nil
+	}
+	_, _ = fmt.Fprintf(stderr, "Paste your Lob API key for profile %q:\n", profile)
 	r := bufio.NewReader(stdin)
 	line, err := r.ReadString('\n')
 	if err != nil {

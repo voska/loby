@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -204,5 +205,65 @@ func TestIdempotencyKey_DifferentInputs(t *testing.T) {
 	k2, _ := IdempotencyKey("p", map[string]string{"a": "2"}, nil, true)
 	if k1 == k2 {
 		t.Fatal("expected different keys for different flag values")
+	}
+}
+
+func TestDo_RetriesOn408(t *testing.T) {
+	var hits int32
+	c, _ := newServer(t, func(w http.ResponseWriter, _ *http.Request) {
+		n := atomic.AddInt32(&hits, 1)
+		if n == 1 {
+			w.WriteHeader(408)
+			_, _ = w.Write([]byte(`{"error":{"message":"timeout","status_code":408}}`))
+			return
+		}
+		w.WriteHeader(200)
+		_, _ = w.Write([]byte(`{"id":"ok"}`))
+	})
+	out := map[string]any{}
+	if _, err := c.Do(context.Background(), &Request{Method: http.MethodGet, Path: "/x", Out: &out}); err != nil {
+		t.Fatalf("Do: %v", err)
+	}
+	if atomic.LoadInt32(&hits) != 2 {
+		t.Fatalf("hits = %d, want 2", hits)
+	}
+}
+
+func TestRetryAfter_PrefersRetryAfterHeader(t *testing.T) {
+	h := http.Header{}
+	h.Set("Retry-After", "3")
+	h.Set("X-Rate-Limit-Reset", strconv.FormatInt(time.Now().Add(time.Hour).Unix(), 10))
+	if got := retryAfter(h); got != 3*time.Second {
+		t.Fatalf("retryAfter = %v, want 3s", got)
+	}
+}
+
+func TestRetryAfter_FallsBackToXRateLimitReset(t *testing.T) {
+	h := http.Header{}
+	h.Set("X-Rate-Limit-Reset", strconv.FormatInt(time.Now().Add(5*time.Second).Unix(), 10))
+	got := retryAfter(h)
+	if got <= 0 || got > 6*time.Second {
+		t.Fatalf("retryAfter = %v, want ~5s", got)
+	}
+}
+
+func TestRetryAfter_ReturnsZeroWhenAbsent(t *testing.T) {
+	if got := retryAfter(http.Header{}); got != 0 {
+		t.Fatalf("retryAfter = %v, want 0", got)
+	}
+}
+
+func TestMultipartCap_RejectsOversizedPayload(t *testing.T) {
+	c, _ := newServer(t, func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(200)
+	})
+	big := strings.NewReader(strings.Repeat("a", MaxMultipartBytes+1024))
+	_, err := c.Do(context.Background(), &Request{
+		Method: http.MethodPost,
+		Path:   "/x",
+		Files:  []FilePart{{Field: "csv", Filename: "big.csv", Reader: big}},
+	})
+	if err == nil || !strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("expected size-cap error, got %v", err)
 	}
 }

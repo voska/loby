@@ -148,37 +148,50 @@ func (c *CampaignSendCmd) Run(g *Globals) error {
 	return execCreateWithQuery(g, "campaigns.send", path+"/send", url.Values{}, map[string]any{}, &out)
 }
 
-// InformedDeliveryCmd implements /v1/informed_delivery_campaigns. These mirror
-// the campaigns CRUD shape and are sent to the campaigns endpoint with a flag.
+// InformedDeliveryCmd implements /v1/informed_delivery_campaigns. Per Lob's
+// public spec, create takes multipart/form-data with a JPG ride-along image.
 type InformedDeliveryCmd struct {
 	Create InformedDeliveryCreateCmd `cmd:"" help:"Create an informed delivery campaign."`
 	Get    InformedDeliveryGetCmd    `cmd:"" help:"Retrieve an informed delivery campaign."`
 	List   InformedDeliveryListCmd   `cmd:"" help:"List informed delivery campaigns."`
 }
 
-// InformedDeliveryCreateCmd posts to /v1/informed_delivery_campaigns.
+// InformedDeliveryCreateCmd posts a multipart/form-data request to
+// /v1/informed_delivery_campaigns. Lob requires ride_along_url + ride_along_image
+// (JPG, ≤200KB, ≤300x200) + quantity + start_date.
 type InformedDeliveryCreateCmd struct {
-	Name        string            `help:"Campaign name." required:""`
-	Description string            `help:"Internal description."`
-	CampaignID  string            `help:"Parent campaign ID (cmp_…)." required:"" name:"campaign-id"`
-	Image       string            `help:"Image URL or @file."`
-	TargetURL   string            `help:"Click-through URL." name:"target-url"`
-	Metadata    map[string]string `help:"Metadata key=value pairs."`
+	RideAlongURL        string `help:"Click-through URL the ride-along image links to (https://, ≤255 chars)." required:"" name:"ride-along-url"`
+	RideAlongImage      string `help:"Path to ride-along JPG (@file.jpg or absolute path; ≤200KB, ≤300x200)." required:"" name:"ride-along-image"`
+	Quantity            int    `help:"Number of mail pieces (USPS IMB sequence)." required:""`
+	StartDate           string `help:"First hand-off date (YYYY-MM-DD, ≥2 days from now)." required:"" name:"start-date"`
+	Status              string `help:"Initial status." enum:"approved,pending_approval" default:"approved"`
+	BrandName           string `help:"Brand name for the campaign." name:"brand-name"`
+	RepresentativeImage string `help:"Optional representative JPG (same constraints as ride-along)." name:"representative-image"`
 }
 
-// Run sends the request.
+// Run sends the multipart request.
 func (c *InformedDeliveryCreateCmd) Run(g *Globals) error {
-	body := map[string]any{
-		"name":        c.Name,
-		"description": optString(c.Description),
-		"campaign_id": c.CampaignID,
-		"image":       parseContentArg(c.Image),
-		"target_url":  optString(c.TargetURL),
-		"metadata":    nilIfEmpty(c.Metadata),
+	form := url.Values{}
+	form.Set("ride_along_url", c.RideAlongURL)
+	form.Set("quantity", itoa(c.Quantity))
+	form.Set("start_date", c.StartDate)
+	if c.Status != "" {
+		form.Set("status", c.Status)
 	}
-	pruneEmpty(body)
-	out := map[string]any{}
-	return execCreateWithQuery(g, "informed_delivery_campaigns", "/informed_delivery_campaigns", url.Values{}, body, &out)
+	if c.BrandName != "" {
+		form.Set("brand_name", c.BrandName)
+	}
+
+	files, cleanup, err := openImageParts(map[string]string{
+		"ride_along_image":     c.RideAlongImage,
+		"representative_image": c.RepresentativeImage,
+	})
+	if err != nil {
+		return err
+	}
+	defer cleanup()
+
+	return execMultipart(g, "informed_delivery_campaigns", "/informed_delivery_campaigns", form, files, map[string]any{})
 }
 
 // InformedDeliveryGetCmd implements GET /v1/informed_delivery_campaigns/:id.

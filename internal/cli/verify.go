@@ -64,5 +64,9 @@ type ZipCmd struct {
 
 // Run sends the request.
 func (c *ZipCmd) Run(g *Globals) error {
-	return execGet(g, "/us_zip_lookups/"+c.Zip, &lob.ZipLookup{})
+	path, err := resourcePath("us_zip_lookups", c.Zip)
+	if err != nil {
+		return err
+	}
+	return execGet(g, path, &lob.ZipLookup{})
 }

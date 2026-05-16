@@ -117,6 +117,24 @@
       ]
     },
     {
+      "name": "completion",
+      "help": "Generate shell completion (bash, zsh, fish, powershell).",
+      "positional": [
+        {
+          "name": "shell",
+          "help": "Shell to generate completions for.",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "bash",
+            "zsh",
+            "fish",
+            "powershell"
+          ]
+        }
+      ]
+    },
+    {
       "name": "auth",
       "help": "Manage Lob API credentials.",
       "subcommands": [
@@ -604,7 +622,7 @@
       "subcommands": [
         {
           "name": "us",
-          "help": "Bulk US address verifications (synchronous JSON array).",
+          "help": "Bulk US address verifications (synchronous, ≤100 addresses).",
           "flags": [
             {
               "name": "addresses",
@@ -627,113 +645,13 @@
         },
         {
           "name": "intl",
-          "help": "Bulk international address verifications (synchronous JSON array).",
+          "help": "Bulk international address verifications (synchronous, ≤100 addresses).",
           "flags": [
             {
               "name": "addresses",
               "help": "JSON array of address objects (or @file.json).",
               "type": "string",
               "required": true
-            }
-          ]
-        },
-        {
-          "name": "csv",
-          "help": "CSV-based async US verification jobs.",
-          "subcommands": [
-            {
-              "name": "submit",
-              "help": "Submit a CSV file for async US verification.",
-              "flags": [
-                {
-                  "name": "description",
-                  "help": "Internal description.",
-                  "type": "string"
-                }
-              ],
-              "positional": [
-                {
-                  "name": "path",
-                  "help": "Path to CSV file with addresses.",
-                  "type": "string",
-                  "required": true
-                }
-              ]
-            },
-            {
-              "name": "status",
-              "help": "Check status of a CSV verification job.",
-              "positional": [
-                {
-                  "name": "id",
-                  "help": "Job ID (us_csv_…).",
-                  "type": "string",
-                  "required": true
-                }
-              ]
-            },
-            {
-              "name": "download",
-              "help": "Download results of a completed CSV verification job.",
-              "positional": [
-                {
-                  "name": "id",
-                  "help": "Job ID (us_csv_…).",
-                  "type": "string",
-                  "required": true
-                }
-              ]
-            },
-            {
-              "name": "list",
-              "help": "List CSV verification jobs.",
-              "flags": [
-                {
-                  "name": "limit",
-                  "help": "Max results.",
-                  "type": "int",
-                  "default": "10"
-                },
-                {
-                  "name": "before",
-                  "help": "Pagination cursor before.",
-                  "type": "string"
-                },
-                {
-                  "name": "after",
-                  "help": "Pagination cursor after.",
-                  "type": "string"
-                },
-                {
-                  "name": "include-total",
-                  "help": "Include total count.",
-                  "type": "bool"
-                }
-              ]
-            },
-            {
-              "name": "delete",
-              "help": "Delete a CSV verification job.",
-              "flags": [
-                {
-                  "name": "confirm",
-                  "help": "Required for destructive operations.",
-                  "type": "bool"
-                },
-                {
-                  "name": "force",
-                  "help": "Alias for --confirm.",
-                  "type": "bool"
-                }
-              ],
-              "positional": [
-                {
-                  "name": "id",
-                  "help": "Job ID.",
-                  "type": "string",
-                  "required": true
-                }
-              ]
             }
           ]
         }
@@ -2088,36 +2006,48 @@
           "help": "Create an informed delivery campaign.",
           "flags": [
             {
-              "name": "name",
-              "help": "Campaign name.",
+              "name": "ride-along-url",
+              "help": "Click-through URL the ride-along image links to (https://, ≤255 chars).",
               "type": "string",
               "required": true
             },
             {
-              "name": "description",
-              "help": "Internal description.",
-              "type": "string"
-            },
-            {
-              "name": "campaign-id",
-              "help": "Parent campaign ID (cmp_…).",
+              "name": "ride-along-image",
+              "help": "Path to ride-along JPG (@file.jpg or absolute path; ≤200KB, ≤300x200).",
               "type": "string",
               "required": true
             },
             {
-              "name": "image",
-              "help": "Image URL or @file.",
+              "name": "quantity",
+              "help": "Number of mail pieces (USPS IMB sequence).",
+              "type": "int",
+              "required": true
+            },
+            {
+              "name": "start-date",
+              "help": "First hand-off date (YYYY-MM-DD, ≥2 days from now).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "status",
+              "help": "Initial status.",
+              "type": "string",
+              "default": "approved",
+              "enum": [
+                "approved",
+                "pending_approval"
+              ]
+            },
+            {
+              "name": "brand-name",
+              "help": "Brand name for the campaign.",
               "type": "string"
             },
             {
-              "name": "target-url",
-              "help": "Click-through URL.",
+              "name": "representative-image",
+              "help": "Optional representative JPG (same constraints as ride-along).",
               "type": "string"
-            },
-            {
-              "name": "metadata",
-              "help": "Metadata key=value pairs.",
-              "type": "map[string]string"
             }
           ]
         },
@@ -2310,7 +2240,7 @@
         },
         {
           "name": "get",
-          "help": "Retrieve an upload.",
+          "help": "Retrieve an upload (status is in the response body).",
           "positional": [
             {
               "name": "id",
@@ -2372,20 +2302,91 @@
           ]
         },
         {
-          "name": "status",
-          "help": "Get upload processing status.",
-          "positional": [
+          "name": "exports",
+          "help": "Manage upload export jobs (failed-row reports).",
+          "subcommands": [
             {
-              "name": "id",
-              "help": "Upload ID.",
-              "type": "string",
-              "required": true
+              "name": "create",
+              "help": "Create an export job for an upload.",
+              "flags": [
+                {
+                  "name": "type",
+                  "help": "Export type.",
+                  "type": "string",
+                  "default": "failures",
+                  "enum": [
+                    "failures",
+                    "all"
+                  ]
+                }
+              ],
+              "positional": [
+                {
+                  "name": "id",
+                  "help": "Upload ID.",
+                  "type": "string",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "list",
+              "help": "List export jobs for an upload.",
+              "positional": [
+                {
+                  "name": "id",
+                  "help": "Upload ID.",
+                  "type": "string",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "get",
+              "help": "Retrieve a specific export job.",
+              "positional": [
+                {
+                  "name": "id",
+                  "help": "Upload ID.",
+                  "type": "string",
+                  "required": true
+                },
+                {
+                  "name": "export-id",
+                  "help": "Export job ID.",
+                  "type": "string",
+                  "required": true
+                }
+              ]
             }
           ]
         },
         {
-          "name": "errors",
-          "help": "Download upload validation errors as CSV.",
+          "name": "report",
+          "help": "Retrieve the line-item report for an upload (feature-flagged).",
+          "flags": [
+            {
+              "name": "status",
+              "help": "Filter by line-item status.",
+              "type": "string",
+              "enum": [
+                "Validated",
+                "Failed",
+                "Processing"
+              ]
+            },
+            {
+              "name": "limit",
+              "help": "Max rows (1-100).",
+              "type": "int",
+              "default": "100"
+            },
+            {
+              "name": "offset",
+              "help": "Pagination offset.",
+              "type": "int"
+            }
+          ],
           "positional": [
             {
               "name": "id",

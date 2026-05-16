@@ -59,11 +59,22 @@ func (w *Writer) Notice(format string, args ...any) {
 
 // Render emits a result in the active mode. v should be a struct, map, or
 // slice — anything json.Marshal accepts. Pointers are dereferenced.
+//
+// The flag order is: --results-only unwraps Lob's {data:[...]} envelope first,
+// then --select projects fields, then --quiet (if set) collapses the result to
+// bare IDs only. This composition matches what an agent expects when piping
+// loby into jq, xargs, or a downstream loby call.
 func (w *Writer) Render(v any) error {
 	if v == nil {
 		return nil
 	}
+	if w.resultsOnly {
+		v = unwrapResults(v)
+	}
 	v = w.project(v)
+	if w.quiet {
+		return w.renderIDs(v)
+	}
 
 	switch w.mode {
 	case JSON:
@@ -77,8 +88,74 @@ func (w *Writer) Render(v any) error {
 	}
 }
 
-// RenderID prints just the resource ID — useful for `--quiet` mode or when the
-// caller only wants the bare identifier to pipe into another command.
+// renderIDs emits one ID per line for --quiet mode. A single resource yields
+// its `id`; a list yields one per element; anything without an ID emits the
+// stringified value.
+func (w *Writer) renderIDs(v any) error {
+	for _, id := range extractIDs(v) {
+		if _, err := fmt.Fprintln(w.stdout, id); err != nil {
+			return fmt.Errorf("write id: %w", err)
+		}
+	}
+	return nil
+}
+
+// extractIDs walks v looking for `id` keys. Lists are flattened. If no IDs are
+// present, the stringified value is returned so --quiet still emits something.
+func extractIDs(v any) []string {
+	buf, err := json.Marshal(v)
+	if err != nil {
+		return []string{fmt.Sprint(v)}
+	}
+	var generic any
+	if err := json.Unmarshal(buf, &generic); err != nil {
+		return []string{string(buf)}
+	}
+	switch x := generic.(type) {
+	case []any:
+		out := make([]string, 0, len(x))
+		for _, item := range x {
+			out = append(out, extractIDs(item)...)
+		}
+		return out
+	case map[string]any:
+		if id, ok := x["id"].(string); ok {
+			return []string{id}
+		}
+		if data, ok := x["data"]; ok {
+			return extractIDs(data)
+		}
+		return nil
+	default:
+		return []string{fmt.Sprint(x)}
+	}
+}
+
+// unwrapResults peels the Lob list envelope ({data, object, count, ...}) when
+// present, returning just data[]. Non-envelope shapes pass through unchanged.
+func unwrapResults(v any) any {
+	buf, err := json.Marshal(v)
+	if err != nil {
+		return v
+	}
+	var generic any
+	if err := json.Unmarshal(buf, &generic); err != nil {
+		return v
+	}
+	m, ok := generic.(map[string]any)
+	if !ok {
+		return v
+	}
+	if data, present := m["data"]; present {
+		if _, isList := data.([]any); isList {
+			return data
+		}
+	}
+	return v
+}
+
+// RenderID prints just the resource ID — useful for `--quiet` mode when the
+// caller already has the ID in hand and does not need to round-trip JSON.
 func (w *Writer) RenderID(id string) error {
 	_, err := fmt.Fprintln(w.stdout, id)
 	if err != nil {

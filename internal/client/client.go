@@ -137,7 +137,7 @@ func (c *Client) Do(ctx context.Context, req *Request) (*Response, error) {
 			}
 			continue
 		}
-		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500 {
+		if shouldRetry(resp.StatusCode) {
 			lastErr = errFromResponse(resp)
 			if attempt < c.maxRetries {
 				continue
@@ -225,6 +225,22 @@ func (c *Client) backoff(attempt int, lastErr error) time.Duration {
 		return ae.RetryAfter
 	}
 	return c.retryBase * (1 << (attempt - 1))
+}
+
+// shouldRetry mirrors APIError.Transient at the status-code level for the
+// retry loop. Kept in client.go so the loop has no reflection cost on the hot
+// path.
+func shouldRetry(status int) bool {
+	switch {
+	case status == http.StatusTooManyRequests:
+		return true
+	case status == http.StatusRequestTimeout:
+		return true
+	case status >= 500:
+		return true
+	default:
+		return false
+	}
 }
 
 func isMutation(method string) bool {

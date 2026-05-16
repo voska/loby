@@ -31,7 +31,6 @@ Quick reference for what each Lob resource is and which `loby` command group man
 | `template` | `tmpl_` | `loby templates` | Stored HTML with Handlebars variables. |
 | `upload` | `upl_` | `loby uploads` | CSV upload for a campaign. |
 | `us_autocompletion` | `us_auto_` | `loby addresses autocomplete` | Partial-address suggestions. |
-| `us_csv_verification` | `us_csv_` | `loby bulk csv` | Async CSV verification. |
 | `us_verification` | `us_ver_` | `loby verify us` | US address verification. |
 | `zip_lookup` | n/a | `loby zip` | ZIP code → city/state. |
 

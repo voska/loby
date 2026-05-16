@@ -78,10 +78,14 @@ loby creatives create --campaign-id "$cmp" --resource-type postcard \
 upl=$(loby uploads create --campaign-id "$cmp" --json | jq -r .id)
 loby uploads file "$upl" ./recipients.csv --json
 
-# Wait for verification.
-while [ "$(loby uploads status "$upl" --json | jq -r .processingStatus)" != "verified" ]; do
+# Wait for verification. The status is in the upload record itself.
+while [ "$(loby uploads get "$upl" --json | jq -r .state)" != "validated" ]; do
   sleep 30
 done
+
+# (Optional) inspect row errors before sending.
+export_id=$(loby uploads exports create "$upl" --type failures --json | jq -r .id)
+loby uploads exports get "$upl" "$export_id" --json
 
 # Submit.
 loby campaigns send "$cmp" --confirm --json

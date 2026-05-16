@@ -50,9 +50,6 @@ This is a human-readable copy of `loby schema --json`. The binary itself is the 
 | `loby identity verify --first-name … --last-name … --line1 …` | Validate identity at an address. |
 | `loby bulk us --addresses @file.json` | Sync bulk US verification (≤100). |
 | `loby bulk intl --addresses @file.json` | Sync bulk international verification. |
-| `loby bulk csv submit ./addresses.csv` | Async CSV verification job. |
-| `loby bulk csv status <id>` | Job status. |
-| `loby bulk csv download <id>` | Verified CSV results. |
 
 ## Mail creation
 
@@ -90,8 +87,11 @@ CRUD verbs: `create`, `get <id>`, `list`, `delete <id> --confirm`.
 | `loby creatives create --campaign-id … --resource-type postcard --from …` | Campaign artwork. |
 | `loby uploads create --campaign-id …` | Upload metadata record. |
 | `loby uploads file <upl_id> ./recipients.csv` | Attach the CSV. |
-| `loby uploads status <upl_id>` | Verify processing. |
-| `loby uploads errors <upl_id>` | Download row errors. |
+| `loby uploads get <upl_id>` | Retrieve upload (status is in the body). |
+| `loby uploads exports create <upl_id> --type failures` | Generate row-error report. |
+| `loby uploads exports list <upl_id>` | List export jobs. |
+| `loby uploads exports get <upl_id> <ex_id>` | Retrieve a specific export. |
+| `loby uploads report <upl_id>` | Line-item report (feature-flagged). |
 
 ## Templates
 

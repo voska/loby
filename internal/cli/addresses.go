@@ -66,7 +66,11 @@ type AddressGetCmd struct {
 
 // Run sends the request.
 func (c *AddressGetCmd) Run(g *Globals) error {
-	return execGet(g, "/addresses/"+c.ID, &lob.Address{})
+	path, err := resourcePath("addresses", c.ID)
+	if err != nil {
+		return err
+	}
+	return execGet(g, path, &lob.Address{})
 }
 
 // AddressListCmd implements GET /v1/addresses.
@@ -105,10 +109,14 @@ type AddressDeleteCmd struct {
 
 // Run sends the request.
 func (c *AddressDeleteCmd) Run(g *Globals) error {
-	if !c.Confirm && !c.Force {
-		return errfmt.Wrap(errfmt.UsageError, errors.New("--confirm (or --force) is required to delete"))
+	if err := requireConfirm(c.Confirm, c.Force); err != nil {
+		return err
 	}
-	return execDelete(g, "/addresses/"+c.ID, &lob.Deleted{})
+	path, err := resourcePath("addresses", c.ID)
+	if err != nil {
+		return err
+	}
+	return execDelete(g, path, &lob.Deleted{})
 }
 
 // USVerifyCmd verifies a US address. Accepts either a single-line address
@@ -207,7 +215,7 @@ func execCreateWithQuery(g *Globals, command, path string, q url.Values, body, o
 	}
 	idem := g.IdempotencyKey
 	if idem == "" {
-		k, err := client.IdempotencyKey(command, nil, body, false)
+		k, err := client.IdempotencyKey(command, nil, body, true)
 		if err != nil {
 			return err
 		}

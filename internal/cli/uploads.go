@@ -8,15 +8,16 @@ import (
 	"github.com/voska/loby/internal/errfmt"
 )
 
-// UploadsCmd implements /v1/uploads — CSV file uploads for campaigns.
+// UploadsCmd implements /v1/uploads — CSV file uploads for campaigns plus the
+// exports/report sub-resources that surface row-level processing results.
 type UploadsCmd struct {
-	Create UploadCreateCmd `cmd:"" help:"Create an upload metadata record for a campaign."`
-	File   UploadFileCmd   `cmd:"" help:"Upload a CSV file to an existing upload record."`
-	Get    UploadGetCmd    `cmd:"" help:"Retrieve an upload."`
-	List   UploadListCmd   `cmd:"" help:"List uploads."`
-	Delete UploadDeleteCmd `cmd:"" help:"Delete an upload."`
-	Status UploadStatusCmd `cmd:"" help:"Get upload processing status."`
-	Errors UploadErrorsCmd `cmd:"" help:"Download upload validation errors as CSV."`
+	Create  UploadCreateCmd  `cmd:"" help:"Create an upload metadata record for a campaign."`
+	File    UploadFileCmd    `cmd:"" help:"Upload a CSV file to an existing upload record."`
+	Get     UploadGetCmd     `cmd:"" help:"Retrieve an upload (status is in the response body)."`
+	List    UploadListCmd    `cmd:"" help:"List uploads."`
+	Delete  UploadDeleteCmd  `cmd:"" help:"Delete an upload."`
+	Exports UploadExportsCmd `cmd:"" help:"Manage upload export jobs (failed-row reports)."`
+	Report  UploadReportCmd  `cmd:"" help:"Retrieve the line-item report for an upload (feature-flagged)."`
 }
 
 // UploadCreateCmd posts to /v1/uploads.
@@ -48,7 +49,7 @@ func (c *UploadCreateCmd) Run(g *Globals) error {
 	return execCreateWithQuery(g, "uploads", "/uploads", url.Values{}, body, &out)
 }
 
-// UploadFileCmd posts a CSV file to /v1/uploads/:id/file (multipart).
+// UploadFileCmd posts a CSV file to POST /v1/uploads/:id/file (multipart).
 type UploadFileCmd struct {
 	ID   string `arg:"" help:"Upload ID."`
 	Path string `arg:"" help:"Path to CSV file."`
@@ -88,7 +89,9 @@ func (c *UploadFileCmd) Run(g *Globals) error {
 	return g.Writer().Render(out)
 }
 
-// UploadGetCmd implements GET /v1/uploads/:id.
+// UploadGetCmd implements GET /v1/uploads/:id. The response includes the
+// processing status as a field; agents should poll Get rather than relying on
+// a separate /status endpoint (Lob does not expose one).
 type UploadGetCmd struct {
 	ID string `arg:"" help:"Upload ID."`
 }
@@ -141,32 +144,94 @@ func (c *UploadDeleteCmd) Run(g *Globals) error {
 	return execDelete(g, path, &out)
 }
 
-// UploadStatusCmd implements GET /v1/uploads/:id/status.
-type UploadStatusCmd struct {
+// UploadExportsCmd manages export jobs that produce row-by-row error reports.
+type UploadExportsCmd struct {
+	Create UploadExportCreateCmd `cmd:"" help:"Create an export job for an upload."`
+	List   UploadExportListCmd   `cmd:"" help:"List export jobs for an upload."`
+	Get    UploadExportGetCmd    `cmd:"" help:"Retrieve a specific export job."`
+}
+
+// UploadExportCreateCmd implements POST /v1/uploads/:id/exports.
+type UploadExportCreateCmd struct {
+	ID   string `arg:"" help:"Upload ID."`
+	Type string `help:"Export type." enum:"failures,all" default:"failures"`
+}
+
+// Run sends the request.
+func (c *UploadExportCreateCmd) Run(g *Globals) error {
+	path, err := resourcePath("uploads", c.ID)
+	if err != nil {
+		return err
+	}
+	body := map[string]any{"type": c.Type}
+	out := map[string]any{}
+	return execCreateWithQuery(g, "uploads.exports", path+"/exports", url.Values{}, body, &out)
+}
+
+// UploadExportListCmd implements GET /v1/uploads/:id/exports.
+type UploadExportListCmd struct {
 	ID string `arg:"" help:"Upload ID."`
 }
 
 // Run sends the request.
-func (c *UploadStatusCmd) Run(g *Globals) error {
+func (c *UploadExportListCmd) Run(g *Globals) error {
 	path, err := resourcePath("uploads", c.ID)
 	if err != nil {
 		return err
 	}
 	out := map[string]any{}
-	return execGet(g, path+"/status", &out)
+	return execGet(g, path+"/exports", &out)
 }
 
-// UploadErrorsCmd implements GET /v1/uploads/:id/rows/errors.
-type UploadErrorsCmd struct {
-	ID string `arg:"" help:"Upload ID."`
+// UploadExportGetCmd implements GET /v1/uploads/:id/exports/:ex_id.
+type UploadExportGetCmd struct {
+	ID       string `arg:"" help:"Upload ID."`
+	ExportID string `arg:"" help:"Export job ID."`
 }
 
 // Run sends the request.
-func (c *UploadErrorsCmd) Run(g *Globals) error {
+func (c *UploadExportGetCmd) Run(g *Globals) error {
 	path, err := resourcePath("uploads", c.ID)
 	if err != nil {
 		return err
 	}
+	export, err := resourcePath("exports", c.ExportID)
+	if err != nil {
+		return err
+	}
 	out := map[string]any{}
-	return execGet(g, path+"/rows/errors", &out)
+	return execGet(g, path+export, &out)
+}
+
+// UploadReportCmd implements GET /v1/uploads/:id/report. The endpoint is
+// feature-flagged by Lob — agents may see 404 until enabled on their account.
+type UploadReportCmd struct {
+	ID     string `arg:"" help:"Upload ID."`
+	Status string `help:"Filter by line-item status." enum:"Validated,Failed,Processing,${none}" default:"${none}"`
+	Limit  int    `help:"Max rows (1-100)." default:"100"`
+	Offset int    `help:"Pagination offset."`
+}
+
+// Run sends the request.
+func (c *UploadReportCmd) Run(g *Globals) error {
+	path, err := resourcePath("uploads", c.ID)
+	if err != nil {
+		return err
+	}
+	q := url.Values{}
+	if c.Status != "" {
+		q.Set("status", c.Status)
+	}
+	if c.Limit > 0 {
+		q.Set("limit", itoa(c.Limit))
+	}
+	if c.Offset > 0 {
+		q.Set("offset", itoa(c.Offset))
+	}
+	out := map[string]any{}
+	encoded := q.Encode()
+	if encoded != "" {
+		encoded = "?" + encoded
+	}
+	return execGet(g, path+"/report"+encoded, &out)
 }

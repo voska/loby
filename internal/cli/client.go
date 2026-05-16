@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"os"
 
 	"github.com/voska/loby/internal/auth"
 	"github.com/voska/loby/internal/client"
@@ -12,8 +13,22 @@ import (
 
 // LobClient builds an authenticated Lob client from the active globals. Auth
 // resolution follows --api-key > LOB_API_KEY > keyring(profile).
+//
+// Keyring open failures are surfaced unless flag/env satisfy auth on their
+// own — a broken keychain should not silently masquerade as "no API key
+// configured" because the recovery path is different (fix the keychain vs.
+// run `auth login`).
 func (g *Globals) LobClient() (*client.Client, error) {
-	store, _ := auth.Open()
+	var (
+		store    *auth.Store
+		storeErr error
+	)
+	if g.APIKey == "" && os.Getenv("LOB_API_KEY") == "" {
+		store, storeErr = auth.Open()
+		if storeErr != nil {
+			return nil, storeErr
+		}
+	}
 	resolved, err := auth.Resolve(g.APIKey, g.Profile, store)
 	if err != nil {
 		if errors.Is(err, auth.ErrNotConfigured) {

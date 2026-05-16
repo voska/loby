@@ -54,6 +54,8 @@ func (e *APIError) ExitCode() int {
 		return errfmt.PaymentRequired
 	case http.StatusTooManyRequests:
 		return errfmt.RateLimited
+	case http.StatusRequestTimeout:
+		return errfmt.Retryable
 	case http.StatusUnprocessableEntity, http.StatusBadRequest:
 		return errfmt.UsageError
 	default:
@@ -66,7 +68,16 @@ func (e *APIError) ExitCode() int {
 
 // Transient reports whether the error is worth retrying.
 func (e *APIError) Transient() bool {
-	return e.StatusCode == http.StatusTooManyRequests || e.StatusCode >= 500
+	switch {
+	case e.StatusCode == http.StatusTooManyRequests:
+		return true
+	case e.StatusCode == http.StatusRequestTimeout:
+		return true
+	case e.StatusCode >= 500:
+		return true
+	default:
+		return false
+	}
 }
 
 // errFromResponse parses Lob's error envelope and wraps it with the right exit
@@ -94,12 +105,27 @@ func errFromResponse(r *Response) error {
 		ae.RawBody = string(r.RawBody)
 	}
 
-	if ra := r.Headers.Get("Retry-After"); ra != "" {
-		if d, ok := parseRetryAfter(ra); ok {
-			ae.RetryAfter = d
+	ae.RetryAfter = retryAfter(r.Headers)
+	return errfmt.Wrap(ae.ExitCode(), ae)
+}
+
+// retryAfter reads the standard Retry-After header, falling back to Lob's
+// X-Rate-Limit-Reset (epoch seconds) when present. Returns zero if neither
+// header is parseable.
+func retryAfter(h http.Header) time.Duration {
+	if v := h.Get("Retry-After"); v != "" {
+		if d, ok := parseRetryAfter(v); ok {
+			return d
 		}
 	}
-	return errfmt.Wrap(ae.ExitCode(), ae)
+	if v := h.Get("X-Rate-Limit-Reset"); v != "" {
+		if secs, err := strconv.ParseInt(strings.TrimSpace(v), 10, 64); err == nil {
+			if d := time.Until(time.Unix(secs, 0)); d > 0 {
+				return d
+			}
+		}
+	}
+	return 0
 }
 
 func parseRetryAfter(v string) (time.Duration, bool) {

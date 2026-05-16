@@ -6,7 +6,13 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"path/filepath"
 )
+
+// MaxMultipartBytes caps in-memory multipart payloads. Multipart requests must
+// be buffered so retry attempts can replay the body; this guard prevents an
+// agent from accidentally OOM'ing the host by piping a multi-GB CSV.
+const MaxMultipartBytes = 100 * 1024 * 1024
 
 // buildBody marshals req.Body / req.Form / req.Files into a byte buffer plus
 // Content-Type. Body wins; otherwise Files implies multipart; otherwise Form
@@ -39,12 +45,17 @@ func multipartBody(req *Request) ([]byte, string, error) {
 		}
 	}
 	for _, fp := range req.Files {
-		w, err := mw.CreateFormFile(fp.Field, fp.Filename)
+		name := filepath.Base(fp.Filename)
+		w, err := mw.CreateFormFile(fp.Field, name)
 		if err != nil {
 			return nil, "", fmt.Errorf("multipart file %s: %w", fp.Field, err)
 		}
-		if _, err := io.Copy(w, fp.Reader); err != nil {
+		limited := &io.LimitedReader{R: fp.Reader, N: int64(MaxMultipartBytes) + 1 - int64(buf.Len())}
+		if _, err := io.Copy(w, limited); err != nil {
 			return nil, "", fmt.Errorf("copy file %s: %w", fp.Field, err)
+		}
+		if buf.Len() > MaxMultipartBytes {
+			return nil, "", fmt.Errorf("multipart payload exceeds %d-byte cap (file %q)", MaxMultipartBytes, name)
 		}
 	}
 	if err := mw.Close(); err != nil {

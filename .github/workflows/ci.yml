@@ -127,11 +127,8 @@ jobs:
       - name: schema must match snapshot
         run: |
           if [ ! -f tests/schema.golden.json ]; then
-            echo "snapshot missing — generating baseline"
-            mkdir -p tests
-            ./bin/loby schema --json > tests/schema.golden.json
-            echo "::warning::generated schema.golden.json; commit it to lock the agent contract"
-            exit 0
+            echo "::error::tests/schema.golden.json is missing — the agent contract is not pinned. Generate locally with 'make build && ./bin/loby schema --json > tests/schema.golden.json' and commit it." >&2
+            exit 1
           fi
           ./bin/loby schema --json > /tmp/schema.actual.json
           diff -u tests/schema.golden.json /tmp/schema.actual.json

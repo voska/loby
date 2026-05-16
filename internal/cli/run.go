@@ -8,10 +8,17 @@ import (
 	"os"
 
 	"github.com/alecthomas/kong"
+	"golang.org/x/term"
 
 	"github.com/voska/loby/internal/errfmt"
 	"github.com/voska/loby/internal/version"
 )
+
+// isStdinTerminal returns true when stdin is attached to a terminal. Used to
+// auto-imply --no-input when the CLI is invoked from a pipe or CI.
+func isStdinTerminal() bool {
+	return term.IsTerminal(int(os.Stdin.Fd()))
+}
 
 // Run is the single entry point invoked by main. It parses args, dispatches to
 // the matched command, and returns the process exit code.
@@ -47,6 +54,11 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	root.Stdout = stdout
 	root.Stderr = stderr
 	root.Ctx = ctx
+	// --no-input is implied when stdin is not a TTY (piped from another
+	// command, CI, etc.). Agents that explicitly pass --no-input still win.
+	if !root.NoInput && !isStdinTerminal() {
+		root.NoInput = true
+	}
 
 	if err := kctx.Run(&root.Globals, parser); err != nil {
 		if !root.Quiet {

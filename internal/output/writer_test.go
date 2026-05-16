@@ -111,3 +111,72 @@ func TestNotice_DefaultEmits(t *testing.T) {
 		t.Fatalf("notice not emitted: %q", errBuf.String())
 	}
 }
+
+func TestQuiet_EmitsBareIDsForObject(t *testing.T) {
+	w, out, _ := newTestWriter(Options{Quiet: true})
+	if err := w.Render(map[string]any{"id": "psc_abc", "status": "rendered"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(out.String()); got != "psc_abc" {
+		t.Fatalf("quiet object: got %q, want psc_abc", got)
+	}
+}
+
+func TestQuiet_EmitsOnePerLineForList(t *testing.T) {
+	w, out, _ := newTestWriter(Options{Quiet: true})
+	in := []any{
+		map[string]any{"id": "a1"},
+		map[string]any{"id": "b1"},
+	}
+	if err := w.Render(in); err != nil {
+		t.Fatal(err)
+	}
+	lines := strings.Split(strings.TrimRight(out.String(), "\n"), "\n")
+	if len(lines) != 2 || lines[0] != "a1" || lines[1] != "b1" {
+		t.Fatalf("quiet list: got %q", out.String())
+	}
+}
+
+func TestQuiet_FlattensDataEnvelope(t *testing.T) {
+	w, out, _ := newTestWriter(Options{Quiet: true})
+	in := map[string]any{"object": "list", "data": []any{
+		map[string]any{"id": "x"},
+		map[string]any{"id": "y"},
+	}}
+	if err := w.Render(in); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(out.String()); got != "x\ny" {
+		t.Fatalf("quiet envelope: got %q", out.String())
+	}
+}
+
+func TestResultsOnly_StripsEnvelope(t *testing.T) {
+	w, out, _ := newTestWriter(Options{JSONFlag: true, ResultsOnly: true})
+	in := map[string]any{
+		"object": "list",
+		"count":  2,
+		"data":   []any{map[string]any{"id": "a"}, map[string]any{"id": "b"}},
+	}
+	if err := w.Render(in); err != nil {
+		t.Fatal(err)
+	}
+	got := out.String()
+	if strings.Contains(got, `"object"`) || strings.Contains(got, `"count"`) {
+		t.Fatalf("results-only kept envelope: %q", got)
+	}
+	if !strings.Contains(got, `"id": "a"`) || !strings.Contains(got, `"id": "b"`) {
+		t.Fatalf("results-only dropped data: %q", got)
+	}
+}
+
+func TestResultsOnly_PassthroughForNonEnvelope(t *testing.T) {
+	w, out, _ := newTestWriter(Options{JSONFlag: true, ResultsOnly: true})
+	in := map[string]any{"id": "psc_only", "status": "rendered"}
+	if err := w.Render(in); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), `"id": "psc_only"`) {
+		t.Fatalf("results-only mangled non-envelope: %q", out.String())
+	}
+}
