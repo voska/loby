@@ -57,16 +57,14 @@ func (c *VerifyIntlCmd) Run(g *Globals) error {
 	return execCreateWithQuery(g, "intl_verifications", "/intl_verifications", url.Values{}, body, &lob.IntlVerification{})
 }
 
-// ZipCmd implements GET /v1/us_zip_lookups/:zip.
+// ZipCmd implements POST /v1/us_zip_lookups. Lob exposes ZIP lookup as a POST
+// with the zip in the body (JSON / form / multipart all accepted).
 type ZipCmd struct {
 	Zip string `arg:"" help:"5-digit US ZIP code."`
 }
 
 // Run sends the request.
 func (c *ZipCmd) Run(g *Globals) error {
-	path, err := resourcePath("us_zip_lookups", c.Zip)
-	if err != nil {
-		return err
-	}
-	return execGet(g, path, &lob.ZipLookup{})
+	body := map[string]any{"zip_code": c.Zip}
+	return execCreateWithQuery(g, "us_zip_lookups", "/us_zip_lookups", url.Values{}, body, &lob.ZipLookup{})
 }
