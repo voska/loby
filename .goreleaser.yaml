@@ -109,7 +109,9 @@ scoops:
     repository:
       owner: voska
       name: scoop-bucket
-      token: "{{ .Env.SCOOP_TAP_TOKEN }}"
+      # Same PAT as the Homebrew tap — one token, scoped to push to both
+      # voska/homebrew-tap and voska/scoop-bucket.
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     homepage: https://loby.voska.org
     description: Canonical CLI for Lob — direct mail, address verification, and campaigns for humans and AI agents.
     license: MIT
