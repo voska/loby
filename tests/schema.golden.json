@@ -1,6 +1,6 @@
 {
   "name": "loby",
-  "help": "loby — canonical CLI for Lob (direct mail).\n\nSend postcards, letters, checks, and self-mailers; verify addresses; manage\ncampaigns and templates. Built for humans and AI agents: structured JSON on\nstdout, hints on stderr, stable exit codes, full schema introspection.\n\nQuick start:\n  loby auth login\n  loby addresses verify \"185 Berry St, San Francisco, CA\"\n  loby postcards create --to <addr_id> --front front.html --back back.html\n\nAgent introspection:\n  loby schema --json\n  loby exit-codes --json\n  loby version --json\n\nDocs: https://loby.voska.org",
+  "help": "loby — canonical CLI for Lob (direct mail).\n\nSend postcards, letters, checks, and self-mailers; verify addresses; manage\ncampaigns and templates. Built for humans and AI agents: structured JSON on\nstdout, hints on stderr, stable exit codes, full schema introspection.\n\nQuick start:\n  loby auth login\n  loby addresses verify \"185 Berry St, San Francisco, CA\"\n  loby postcards create --to <addr_id> --front front.html --back back.html\n\nAgent introspection:\n  loby schema --json\n  loby exit-codes --json\n  loby version --json\n\nDocs: https://lobycli.com",
   "flags": [
     {
       "name": "help",
