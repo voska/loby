@@ -85,4 +85,4 @@ Agent introspection:
   loby exit-codes --json
   loby version --json
 
-Docs: https://loby.voska.org`
+Docs: https://lobycli.com`

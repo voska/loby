@@ -7,9 +7,9 @@
 <meta name="description" content="loby is the canonical CLI for Lob (lob.com) — direct mail, address verification, and campaigns. Built for AI agents and humans alike.">
 <meta property="og:title" content="loby — Lob CLI">
 <meta property="og:description" content="The canonical CLI for Lob. brew install voska/tap/loby">
-<meta property="og:url" content="https://loby.voska.org">
+<meta property="og:url" content="https://lobycli.com">
 <meta name="theme-color" content="#0b0d10">
-<link rel="canonical" href="https://loby.voska.org">
+<link rel="canonical" href="https://lobycli.com">
 <style>
   :root {
     --bg: #0b0d10;
@@ -52,7 +52,7 @@ scoop bucket add voska \
   https://github.com/voska/scoop-bucket
 scoop install loby</code></pre>
     <pre><code># Any platform
-curl -fsSL https://loby.voska.org/install.sh | sh</code></pre>
+curl -fsSL https://lobycli.com/install.sh | sh</code></pre>
     <pre><code># From source
 go install github.com/voska/loby/cmd/loby@latest</code></pre>
   </div>
@@ -70,11 +70,11 @@ loby postcards create \
 
   <p>Drop the canonical skill into your agent's skills directory:</p>
 <pre><code>mkdir -p ~/.claude/skills/loby
-curl -fsSL https://loby.voska.org/skill/SKILL.md \
+curl -fsSL https://lobycli.com/skill/SKILL.md \
   > ~/.claude/skills/loby/SKILL.md</code></pre>
 
   <p>Or install the full bundle (SKILL.md + command catalog + recipes + resource glossary):</p>
-<pre><code>curl -fsSL https://loby.voska.org/skill/install.sh | sh</code></pre>
+<pre><code>curl -fsSL https://lobycli.com/skill/install.sh | sh</code></pre>
 
   <p>See <a href="/skill/SKILL.md">SKILL.md</a>, <a href="/skill/references/COMMANDS.md">COMMANDS.md</a>, <a href="/skill/references/RECIPES.md">RECIPES.md</a>, <a href="/skill/references/RESOURCES.md">RESOURCES.md</a>. Discovery manifest at <a href="/llms.txt">/llms.txt</a>.</p>
 

@@ -35,7 +35,7 @@ scoop bucket add voska https://github.com/voska/scoop-bucket
 scoop install loby
 
 # Direct binary (any platform)
-curl -fsSL https://loby.voska.org/install.sh | sh
+curl -fsSL https://lobycli.com/install.sh | sh
 
 # From source
 go install github.com/voska/loby/cmd/loby@latest
@@ -91,13 +91,13 @@ Drop `skills/loby/SKILL.md` into your skills directory:
 
 ```bash
 mkdir -p ~/.claude/skills/loby
-curl -fsSL https://loby.voska.org/skill/SKILL.md > ~/.claude/skills/loby/SKILL.md
+curl -fsSL https://lobycli.com/skill/SKILL.md > ~/.claude/skills/loby/SKILL.md
 ```
 
 Or install the full bundle (SKILL.md + references):
 
 ```bash
-curl -fsSL https://loby.voska.org/skill/install.sh | sh
+curl -fsSL https://lobycli.com/skill/install.sh | sh
 ```
 
 The skill teaches agents to install the CLI, authenticate, prefer `--json`, use `--dry-run`, and follow the canonical mail-flow recipes.

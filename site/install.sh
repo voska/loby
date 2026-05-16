@@ -3,9 +3,9 @@
 # GitHub, verifies the checksum, and installs to a directory on $PATH.
 #
 # Usage:
-#   curl -fsSL https://loby.voska.org/install.sh | sh
-#   curl -fsSL https://loby.voska.org/install.sh | LOBY_VERSION=v1.0.0 sh
-#   curl -fsSL https://loby.voska.org/install.sh | LOBY_PREFIX=$HOME/.local sh
+#   curl -fsSL https://lobycli.com/install.sh | sh
+#   curl -fsSL https://lobycli.com/install.sh | LOBY_VERSION=v1.0.0 sh
+#   curl -fsSL https://lobycli.com/install.sh | LOBY_PREFIX=$HOME/.local sh
 #
 # Override defaults via env vars:
 #   LOBY_VERSION   tag to install (default: latest)

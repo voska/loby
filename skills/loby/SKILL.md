@@ -12,7 +12,7 @@ description: Use when sending physical mail via Lob — postcards, letters, chec
 ```bash
 brew install voska/tap/loby                       # macOS + Linux
 scoop bucket add voska https://github.com/voska/scoop-bucket && scoop install loby
-curl -fsSL https://loby.voska.org/install.sh | sh
+curl -fsSL https://lobycli.com/install.sh | sh
 ```
 
 Verify: `loby version`.

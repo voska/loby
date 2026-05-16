@@ -102,7 +102,7 @@ loby/
 ├── site/                         # GH Pages
 │   ├── index.html
 │   ├── llms.txt                  # agent crawl manifest
-│   └── install.sh                # `curl -fsSL loby.voska.org/install.sh | sh`
+│   └── install.sh                # `curl -fsSL lobycli.com/install.sh | sh`
 ├── docs/
 │   ├── auth.md
 │   ├── distribution.md
@@ -265,8 +265,8 @@ This makes the CLI safe for agents — they can call `loby postcards create ...`
 Lives at `skills/loby/SKILL.md` in the repo; users install with:
 ```bash
 mkdir -p ~/.claude/skills/loby
-curl -fsSL https://loby.voska.org/skill/SKILL.md > ~/.claude/skills/loby/SKILL.md
-curl -fsSL https://loby.voska.org/skill/install.sh | sh   # full bundle
+curl -fsSL https://lobycli.com/skill/SKILL.md > ~/.claude/skills/loby/SKILL.md
+curl -fsSL https://lobycli.com/skill/install.sh | sh   # full bundle
 ```
 
 **Description field (focused on triggers, not workflow per Anthropic CSO guidance):**
@@ -289,14 +289,14 @@ Skill teaches the agent to:
 | Scoop (Windows) | `scoop bucket add voska https://github.com/voska/scoop-bucket && scoop install loby` |
 | Direct binary | GitHub Releases with `.tar.gz` + `.zip` + checksums + cosign signatures |
 | go install | `go install github.com/voska/loby/cmd/loby@latest` |
-| Landing page | `loby.voska.org` (GH Pages) with single-command install + llms.txt |
-| Agent crawl | `loby.voska.org/llms.txt` enumerates pages; SKILL.md, COMMANDS.md, RECIPES.md, install.sh all served raw |
+| Landing page | `lobycli.com` (GH Pages) with single-command install + llms.txt |
+| Agent crawl | `lobycli.com/llms.txt` enumerates pages; SKILL.md, COMMANDS.md, RECIPES.md, install.sh all served raw |
 | pkg.go.dev | automatic |
 
 `install.sh` autodetects OS/arch, downloads the right release, verifies checksum, drops the binary on PATH. The agent-discoverable one-liner:
 
 ```bash
-curl -fsSL https://loby.voska.org/install.sh | sh
+curl -fsSL https://lobycli.com/install.sh | sh
 ```
 
 ## Testing

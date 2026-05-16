@@ -4,15 +4,15 @@
 
 ## Quickstart for agents
 
-- [SKILL.md](https://loby.voska.org/skill/SKILL.md): canonical agent skill (drop into ~/.claude/skills/loby/).
-- [install.sh](https://loby.voska.org/install.sh): autodetects OS+arch and installs the binary.
-- [Skill install.sh](https://loby.voska.org/skill/install.sh): installs SKILL.md + references bundle.
+- [SKILL.md](https://lobycli.com/skill/SKILL.md): canonical agent skill (drop into ~/.claude/skills/loby/).
+- [install.sh](https://lobycli.com/install.sh): autodetects OS+arch and installs the binary.
+- [Skill install.sh](https://lobycli.com/skill/install.sh): installs SKILL.md + references bundle.
 
 ## Reference
 
-- [COMMANDS.md](https://loby.voska.org/skill/references/COMMANDS.md): full command catalog.
-- [RECIPES.md](https://loby.voska.org/skill/references/RECIPES.md): verified end-to-end recipes.
-- [RESOURCES.md](https://loby.voska.org/skill/references/RESOURCES.md): Lob resource glossary.
+- [COMMANDS.md](https://lobycli.com/skill/references/COMMANDS.md): full command catalog.
+- [RECIPES.md](https://lobycli.com/skill/references/RECIPES.md): verified end-to-end recipes.
+- [RESOURCES.md](https://lobycli.com/skill/references/RESOURCES.md): Lob resource glossary.
 
 ## Source
 
@@ -25,7 +25,7 @@
 ```
 brew install voska/tap/loby
 scoop install loby
-curl -fsSL https://loby.voska.org/install.sh | sh
+curl -fsSL https://lobycli.com/install.sh | sh
 go install github.com/voska/loby/cmd/loby@latest
 ```
 
