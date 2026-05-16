@@ -557,26 +557,24 @@
           "help": "Verify the identity of a recipient.",
           "flags": [
             {
-              "name": "first-name",
-              "help": "First name.",
+              "name": "recipient",
+              "help": "Recipient full name (required if --company is not set).",
+              "type": "string"
+            },
+            {
+              "name": "company",
+              "help": "Company name (required if --recipient is not set).",
+              "type": "string"
+            },
+            {
+              "name": "primary-line",
+              "help": "Primary address line (street).",
               "type": "string",
               "required": true
             },
             {
-              "name": "last-name",
-              "help": "Last name.",
-              "type": "string",
-              "required": true
-            },
-            {
-              "name": "line1",
-              "help": "Address line 1.",
-              "type": "string",
-              "required": true
-            },
-            {
-              "name": "line2",
-              "help": "Address line 2.",
+              "name": "secondary-line",
+              "help": "Secondary line (apt/suite).",
               "type": "string"
             },
             {
@@ -593,24 +591,6 @@
               "name": "zip",
               "help": "ZIP code.",
               "type": "string"
-            },
-            {
-              "name": "country",
-              "help": "Country code.",
-              "type": "string",
-              "default": "US"
-            }
-          ]
-        },
-        {
-          "name": "get",
-          "help": "Retrieve an identity validation.",
-          "positional": [
-            {
-              "name": "id",
-              "help": "Identity validation ID.",
-              "type": "string",
-              "required": true
             }
           ]
         }
@@ -776,30 +756,6 @@
               "name": "include-total",
               "help": "Include total count.",
               "type": "bool"
-            }
-          ]
-        },
-        {
-          "name": "cancel",
-          "help": "Cancel a postcard before mailing.",
-          "flags": [
-            {
-              "name": "confirm",
-              "help": "Required for destructive operations.",
-              "type": "bool"
-            },
-            {
-              "name": "force",
-              "help": "Alias for --confirm.",
-              "type": "bool"
-            }
-          ],
-          "positional": [
-            {
-              "name": "id",
-              "help": "Postcard ID (psc_…).",
-              "type": "string",
-              "required": true
             }
           ]
         }
@@ -1267,30 +1223,6 @@
               "name": "include-total",
               "help": "Include total count.",
               "type": "bool"
-            }
-          ]
-        },
-        {
-          "name": "cancel",
-          "help": "Cancel a self-mailer before mailing.",
-          "flags": [
-            {
-              "name": "confirm",
-              "help": "Required for destructive operations.",
-              "type": "bool"
-            },
-            {
-              "name": "force",
-              "help": "Alias for --confirm.",
-              "type": "bool"
-            }
-          ],
-          "positional": [
-            {
-              "name": "id",
-              "help": "Self-mailer ID (sfm_…).",
-              "type": "string",
-              "required": true
             }
           ]
         }
@@ -2402,7 +2334,7 @@
               "required": true
             },
             {
-              "name": "engine-type",
+              "name": "engine",
               "help": "Template engine.",
               "type": "string",
               "default": "handlebars",
@@ -2530,7 +2462,7 @@
                   "required": true
                 },
                 {
-                  "name": "engine-type",
+                  "name": "engine",
                   "help": "Template engine.",
                   "type": "string",
                   "default": "handlebars",

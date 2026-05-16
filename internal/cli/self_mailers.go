@@ -7,12 +7,13 @@ import (
 	"github.com/voska/loby/internal/lob"
 )
 
-// SelfMailersCmd implements /v1/self_mailers.
+// SelfMailersCmd implements /v1/self_mailers. Like postcards, self-mailers
+// do not expose a cancel/delete endpoint — they enter the USPS pipeline on
+// create.
 type SelfMailersCmd struct {
 	Create SelfMailerCreateCmd `cmd:"" help:"Send a self-mailer."`
 	Get    SelfMailerGetCmd    `cmd:"" help:"Retrieve a self-mailer by ID."`
 	List   SelfMailerListCmd   `cmd:"" help:"List self-mailers."`
-	Cancel SelfMailerCancelCmd `cmd:"" help:"Cancel a self-mailer before mailing."`
 }
 
 // SelfMailerCreateCmd posts to /v1/self_mailers.
@@ -83,16 +84,4 @@ type SelfMailerListCmd struct {
 func (c *SelfMailerListCmd) Run(g *Globals) error {
 	out := &lob.List[lob.SelfMailer]{}
 	return execList(g, "/self_mailers", listQuery(c.Limit, c.Before, c.After, c.IncludeTotal, nil), out)
-}
-
-// SelfMailerCancelCmd implements POST /v1/self_mailers/:id/cancel.
-type SelfMailerCancelCmd struct {
-	ID      string `arg:"" help:"Self-mailer ID (sfm_…)."`
-	Confirm bool   `help:"Required for destructive operations." xor:"destructive"`
-	Force   bool   `help:"Alias for --confirm." xor:"destructive"`
-}
-
-// Run sends the request.
-func (c *SelfMailerCancelCmd) Run(g *Globals) error {
-	return execCancel(g, "self_mailers", c.ID, c.Confirm, c.Force)
 }

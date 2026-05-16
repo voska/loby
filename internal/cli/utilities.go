@@ -214,54 +214,41 @@ func (c *GeoReverseCmd) Run(g *Globals) error {
 	return execCreateWithQuery(g, "reverse_geocode_lookups", "/us_reverse_geocode_lookups", url.Values{}, body, &out)
 }
 
-// IdentityCmd implements /v1/identity_validation.
+// IdentityCmd implements /v1/identity_validation. Lob only exposes the POST;
+// validations are not addressable by ID after creation.
 type IdentityCmd struct {
 	Verify IdentityVerifyCmd `cmd:"" help:"Verify the identity of a recipient."`
-	Get    IdentityGetCmd    `cmd:"" help:"Retrieve an identity validation."`
 }
 
-// IdentityVerifyCmd posts to /v1/identity_validation.
+// IdentityVerifyCmd posts to /v1/identity_validation. Lob expects a single
+// `recipient` name (or `company`) plus a US address as flat fields.
 type IdentityVerifyCmd struct {
-	FirstName    string `help:"First name." required:"" name:"first-name"`
-	LastName     string `help:"Last name." required:"" name:"last-name"`
-	AddressLine1 string `help:"Address line 1." required:"" name:"line1"`
-	AddressLine2 string `help:"Address line 2." name:"line2"`
-	City         string `help:"City."`
-	State        string `help:"State."`
-	Zip          string `help:"ZIP code."`
-	Country      string `help:"Country code." default:"US"`
+	Recipient   string `help:"Recipient full name (required if --company is not set)."`
+	Company     string `help:"Company name (required if --recipient is not set)."`
+	PrimaryLine string `help:"Primary address line (street)." required:"" name:"primary-line"`
+	Secondary   string `help:"Secondary line (apt/suite)." name:"secondary-line"`
+	City        string `help:"City."`
+	State       string `help:"State."`
+	Zip         string `help:"ZIP code."`
 }
 
 // Run sends the request.
 func (c *IdentityVerifyCmd) Run(g *Globals) error {
+	if c.Recipient == "" && c.Company == "" {
+		return errfmtUsage("either --recipient or --company is required")
+	}
 	body := map[string]any{
-		"first_name":      c.FirstName,
-		"last_name":       c.LastName,
-		"address_line1":   c.AddressLine1,
-		"address_line2":   optString(c.AddressLine2),
-		"address_city":    optString(c.City),
-		"address_state":   optString(c.State),
-		"address_zip":     optString(c.Zip),
-		"address_country": c.Country,
+		"recipient":      optString(c.Recipient),
+		"company":        optString(c.Company),
+		"primary_line":   c.PrimaryLine,
+		"secondary_line": optString(c.Secondary),
+		"city":           optString(c.City),
+		"state":          optString(c.State),
+		"zip_code":       optString(c.Zip),
 	}
 	pruneEmpty(body)
 	out := map[string]any{}
 	return execCreateWithQuery(g, "identity_validation", "/identity_validation", url.Values{}, body, &out)
-}
-
-// IdentityGetCmd implements GET /v1/identity_validation/:id.
-type IdentityGetCmd struct {
-	ID string `arg:"" help:"Identity validation ID."`
-}
-
-// Run sends the request.
-func (c *IdentityGetCmd) Run(g *Globals) error {
-	path, err := resourcePath("identity_validation", c.ID)
-	if err != nil {
-		return err
-	}
-	out := map[string]any{}
-	return execGet(g, path, &out)
 }
 
 // ResourceProofsCmd implements /v1/resource_proofs.

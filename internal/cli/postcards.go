@@ -7,12 +7,12 @@ import (
 	"github.com/voska/loby/internal/lob"
 )
 
-// PostcardsCmd implements /v1/postcards.
+// PostcardsCmd implements /v1/postcards. Lob does not expose a cancel/delete
+// endpoint for postcards — they enter the USPS pipeline immediately on create.
 type PostcardsCmd struct {
 	Create PostcardCreateCmd `cmd:"" help:"Send a postcard."`
 	Get    PostcardGetCmd    `cmd:"" help:"Retrieve a postcard by ID."`
 	List   PostcardListCmd   `cmd:"" help:"List postcards."`
-	Cancel PostcardCancelCmd `cmd:"" help:"Cancel a postcard before mailing."`
 }
 
 // PostcardCreateCmd is the full create form. To/From accept address IDs (adr_…)
@@ -85,22 +85,6 @@ func (c *PostcardListCmd) Run(g *Globals) error {
 	out := &lob.List[lob.Postcard]{}
 	return execList(g, "/postcards", listQuery(c.Limit, c.Before, c.After, c.IncludeTotal, nil), out)
 }
-
-// PostcardCancelCmd implements POST /v1/postcards/:id/cancel.
-type PostcardCancelCmd struct {
-	ID      string `arg:"" help:"Postcard ID (psc_…)."`
-	Confirm bool   `help:"Required for destructive operations." xor:"destructive"`
-	Force   bool   `help:"Alias for --confirm." xor:"destructive"`
-}
-
-// Run sends the request.
-func (c *PostcardCancelCmd) Run(g *Globals) error {
-	return execCancel(g, "postcards", c.ID, c.Confirm, c.Force)
-}
-
-// PostcardDelete is implemented via Cancel; Lob does not support DELETE on
-// postcards after submission. The Cancel verb covers both pre- and post-send
-// flows depending on resource state.
 
 // Helpers shared across mailers.
 

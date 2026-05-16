@@ -16,7 +16,7 @@ type TemplatesCmd struct {
 type TemplateCreateCmd struct {
 	Description string            `help:"Internal description."`
 	HTML        string            `help:"HTML body (or @file.html)." required:"" name:"html"`
-	EngineType  string            `help:"Template engine." enum:"legacy,handlebars" default:"handlebars" name:"engine-type"`
+	Engine      string            `help:"Template engine." enum:"legacy,handlebars" default:"handlebars"`
 	Metadata    map[string]string `help:"Metadata key=value pairs."`
 }
 
@@ -25,7 +25,7 @@ func (c *TemplateCreateCmd) Run(g *Globals) error {
 	body := map[string]any{
 		"description": optString(c.Description),
 		"html":        parseContentArg(c.HTML),
-		"engine_type": c.EngineType,
+		"engine":      c.Engine,
 		"metadata":    nilIfEmpty(c.Metadata),
 	}
 	pruneEmpty(body)
@@ -124,7 +124,7 @@ type TemplateVersionCreateCmd struct {
 	TemplateID  string `arg:"" help:"Parent template ID (tmpl_…)."`
 	Description string `help:"Version description."`
 	HTML        string `help:"HTML body (or @file.html)." required:""`
-	EngineType  string `help:"Template engine." enum:"legacy,handlebars" default:"handlebars" name:"engine-type"`
+	Engine      string `help:"Template engine." enum:"legacy,handlebars" default:"handlebars"`
 }
 
 // Run sends the request.
@@ -136,7 +136,7 @@ func (c *TemplateVersionCreateCmd) Run(g *Globals) error {
 	body := map[string]any{
 		"description": optString(c.Description),
 		"html":        parseContentArg(c.HTML),
-		"engine_type": c.EngineType,
+		"engine":      c.Engine,
 	}
 	pruneEmpty(body)
 	out := map[string]any{}

@@ -5,6 +5,9 @@ import "time"
 // MailerCore is the common shape across all Lob mail objects (postcards,
 // letters, checks, self_mailers, cards, booklets, buckslips, snap_packs).
 // Each typed mailer embeds this and adds resource-specific fields.
+//
+// Date-shaped fields use lob.Date — Lob documents them as full timestamps but
+// returns bare YYYY-MM-DD for many resources, especially under test keys.
 type MailerCore struct {
 	ID               string         `json:"id"`
 	Description      string         `json:"description,omitempty"`
@@ -16,10 +19,10 @@ type MailerCore struct {
 	Tracking         *Tracking      `json:"tracking_number,omitempty"`
 	TrackingEvents   []any          `json:"tracking_events,omitempty"`
 	Thumbnails       []Thumbnail    `json:"thumbnails,omitempty"`
-	ExpectedDelivery *time.Time     `json:"expected_delivery_date,omitempty"`
+	ExpectedDelivery Date           `json:"expected_delivery_date,omitempty"`
 	DateCreated      time.Time      `json:"date_created"`
 	DateModified     time.Time      `json:"date_modified"`
-	SendDate         *time.Time     `json:"send_date,omitempty"`
+	SendDate         Date           `json:"send_date,omitempty"`
 	Status           string         `json:"status,omitempty"`
 	Object           string         `json:"object,omitempty"`
 	UseType          string         `json:"use_type,omitempty"`
@@ -50,18 +53,19 @@ type Letter struct {
 	ExtraService     string `json:"extra_service,omitempty"`
 }
 
-// Check is the GET /v1/checks/:id response.
+// Check is the GET /v1/checks/:id response. BankAccount comes back as an
+// inflated object on retrieve, not just an ID — typed as `any` to accept both.
 type Check struct {
 	MailerCore
 	To            any     `json:"to,omitempty"`
 	From          any     `json:"from,omitempty"`
-	BankAccount   string  `json:"bank_account,omitempty"`
+	BankAccount   any     `json:"bank_account,omitempty"`
 	CheckNumber   int     `json:"check_number,omitempty"`
 	Memo          string  `json:"memo,omitempty"`
 	Message       string  `json:"message,omitempty"`
-	Logo          string  `json:"logo,omitempty"`
+	Logo          any     `json:"logo,omitempty"`
 	Amount        float64 `json:"amount"`
-	AttachmentURL string  `json:"attachment,omitempty"`
+	AttachmentURL any     `json:"attachment,omitempty"`
 	Pages         int     `json:"pages,omitempty"`
 }
 

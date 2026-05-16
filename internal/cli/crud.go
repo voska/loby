@@ -56,26 +56,27 @@ func resourcePath(base, id string) (string, error) {
 	return fmt.Sprintf("/%s/%s", base, id), nil
 }
 
-// execCancel sends POST /<resource>/<id>/cancel — Lob's pattern for pre-mailing
-// cancellation of mailer resources (postcards, letters, checks, etc.).
+// execCancel sends DELETE /<resource>/<id> — Lob's actual cancel mechanism
+// for mailer resources. (The spec exposes cancel as DELETE on the single
+// resource, not as a /cancel sub-route.) Only letters, checks, and snap_packs
+// expose this; postcards and self_mailers cannot be cancelled via the API.
 func execCancel(g *Globals, resource, id string, confirm, force bool) error {
 	if err := requireConfirm(confirm, force); err != nil {
 		return err
 	}
-	base, err := resourcePath(resource, id)
+	path, err := resourcePath(resource, id)
 	if err != nil {
 		return err
 	}
-	path := base + "/cancel"
 	if g.DryRun {
-		return g.Writer().Render(map[string]any{"method": http.MethodPost, "path": path})
+		return g.Writer().Render(map[string]any{"method": http.MethodDelete, "path": path})
 	}
 	cl, err := g.LobClient()
 	if err != nil {
 		return err
 	}
 	out := map[string]any{}
-	if _, err := cl.Do(g.Context(), &client.Request{Method: http.MethodPost, Path: path, Out: &out}); err != nil {
+	if _, err := cl.Do(g.Context(), &client.Request{Method: http.MethodDelete, Path: path, Out: &out}); err != nil {
 		return err
 	}
 	return g.Writer().Render(out)

@@ -4,6 +4,35 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-05-16
+
+End-to-end live verification against `api.lob.com` test environment.
+`scripts/live-smoke.sh` now exercises every CLI command that the test key
+can reach (47 pass, 15 skip, 0 fail) and surfaced the following real bugs:
+
+### Fixed
+- Mailer response decoding crashed on `expected_delivery_date` and
+  `send_date` when Lob returned bare `YYYY-MM-DD` (it documents these as
+  full timestamps but returns date-only for test-created resources).
+  Introduced `lob.Date`, a flexible unmarshaler that accepts RFC3339 or
+  YYYY-MM-DD.
+- `loby templates create` was sending `engine_type`, which Lob rejected
+  with HTTP 422. The correct field is `engine` (`legacy` | `handlebars`).
+- `loby identity verify` was sending `first_name`/`last_name`. Lob expects
+  a single `recipient` (or `company`) plus a US address. Flags reshaped
+  accordingly.
+- `loby letters cancel` / `loby checks cancel` / `loby snap-packs cancel`
+  used `POST /<res>/<id>/cancel` (404). Lob's actual cancel mechanism is
+  `DELETE /<res>/<id>`. `execCancel` rewritten.
+- `loby checks get` crashed because the `bank_account` field comes back
+  as an object on retrieve, not a string ID. Typed as `any`.
+
+### Removed (endpoints that don't exist on Lob's public API)
+- `loby postcards cancel` — postcards enter the USPS pipeline immediately
+  on create; no cancel endpoint.
+- `loby self-mailers cancel` — same.
+- `loby identity get` — identity validations aren't addressable by ID.
+
 ## [0.1.2] — 2026-05-16
 
 ### Fixed
@@ -41,7 +70,8 @@ Both bugs surfaced from end-to-end live testing against Lob's test environment.
 - Canonical [SKILL.md](skills/loby/SKILL.md) for AI agents with [command catalog](skills/loby/references/COMMANDS.md), [verified recipes](skills/loby/references/RECIPES.md), and [resource glossary](skills/loby/references/RESOURCES.md).
 - Custom domain <https://lobycli.com> with `install.sh`, `llms.txt`, and the full SKILL bundle for agent discovery.
 
-[Unreleased]: https://github.com/voska/loby/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/voska/loby/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/voska/loby/releases/tag/v0.1.3
 [0.1.2]: https://github.com/voska/loby/releases/tag/v0.1.2
 [0.1.1]: https://github.com/voska/loby/releases/tag/v0.1.1
 [0.1.0]: https://github.com/voska/loby/releases/tag/v0.1.0
