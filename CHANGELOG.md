@@ -4,6 +4,14 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-05-16
+
+### Fixed
+- `loby zip <code>` was issuing `GET /us_zip_lookups/:zip` and getting 404. Lob's actual endpoint is `POST /us_zip_lookups` with the zip in the body.
+- `loby account` was hitting `GET /accounts` (401). The documented endpoint is `GET /accounts/credits_balance`.
+
+Both bugs surfaced from end-to-end live testing against Lob's test environment.
+
 ## [0.1.0] — 2026-05-16
 
 ### Added
@@ -20,5 +28,6 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 - Canonical [SKILL.md](skills/loby/SKILL.md) for AI agents with [command catalog](skills/loby/references/COMMANDS.md), [verified recipes](skills/loby/references/RECIPES.md), and [resource glossary](skills/loby/references/RESOURCES.md).
 - Custom domain <https://lobycli.com> with `install.sh`, `llms.txt`, and the full SKILL bundle for agent discovery.
 
-[Unreleased]: https://github.com/voska/loby/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/voska/loby/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/voska/loby/releases/tag/v0.1.1
 [0.1.0]: https://github.com/voska/loby/releases/tag/v0.1.0
