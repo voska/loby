@@ -4,6 +4,19 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-05-16
+
+### Fixed
+- `loby qr-codes` was hitting `/qr_codes` (404). The real path is `/qr_code_analytics`. Lob does not expose create/get for QR codes — the `qr-codes` group is now list-only (with `--scanned`, `--limit`, `--offset` filters), since QR codes are minted by embedding Lob's snippet in mailer HTML rather than via the API.
+- `loby short-urls` was hitting `/short_urls` (404). Lob's URL shortener lives at `/links` and `/domains`. Replaced `short-urls` with two new groups: `loby links` (create/get/list/delete) and `loby domains` (create/get/list/delete).
+- `loby geo reverse <lat> <lng>` failed when longitude was negative because Kong parsed `-122.4194` as a flag. Switched to `--lat`/`--lng` flags, which also fixes the wrong path (`/reverse_geocode_lookups` → `/us_reverse_geocode_lookups`).
+- `loby uploads list` was sending `limit`/`before`/`after` query params, which Lob rejects with HTTP 400. The endpoint only accepts `--campaign-id`. Also handle the bare-array response shape (Lob returns `[…]` here, not the usual envelope).
+
+### Breaking
+- `loby short-urls` is gone; use `loby links` instead.
+- `loby qr-codes create` and `loby qr-codes get` are gone — these endpoints do not exist on Lob's public API.
+- `loby geo reverse` now takes `--lat` and `--lng` flags instead of two positional args.
+
 ## [0.1.1] — 2026-05-16
 
 ### Fixed
@@ -28,6 +41,7 @@ Both bugs surfaced from end-to-end live testing against Lob's test environment.
 - Canonical [SKILL.md](skills/loby/SKILL.md) for AI agents with [command catalog](skills/loby/references/COMMANDS.md), [verified recipes](skills/loby/references/RECIPES.md), and [resource glossary](skills/loby/references/RESOURCES.md).
 - Custom domain <https://lobycli.com> with `install.sh`, `llms.txt`, and the full SKILL bundle for agent discovery.
 
-[Unreleased]: https://github.com/voska/loby/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/voska/loby/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/voska/loby/releases/tag/v0.1.2
 [0.1.1]: https://github.com/voska/loby/releases/tag/v0.1.1
 [0.1.0]: https://github.com/voska/loby/releases/tag/v0.1.0

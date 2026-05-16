@@ -2,109 +2,79 @@ package cli
 
 import "net/url"
 
-// QRCodesCmd implements /v1/qr_codes.
+// QRCodesCmd implements /v1/qr_code_analytics — Lob's QR code analytics
+// endpoint. QR codes themselves are created by embedding Lob's QR snippet in a
+// mailer's HTML; the API only surfaces scan analytics for the resulting codes.
 type QRCodesCmd struct {
-	Create QRCodeCreateCmd `cmd:"" help:"Create a QR code with a redirect URL."`
-	Get    QRCodeGetCmd    `cmd:"" help:"Retrieve a QR code."`
-	List   QRCodeListCmd   `cmd:"" help:"List QR codes."`
+	List QRCodeListCmd `cmd:"" help:"List QR codes (with scan analytics)."`
 }
 
-// QRCodeCreateCmd posts to /v1/qr_codes.
-type QRCodeCreateCmd struct {
-	RedirectURL string            `help:"Destination URL the code resolves to." required:"" name:"redirect-url"`
-	Description string            `help:"Internal description."`
-	Position    string            `help:"Position on artwork." enum:"top_left,top_right,bottom_left,bottom_right,relative" default:"bottom_right"`
-	Width       string            `help:"Width in inches."`
-	Top         string            `help:"Top offset in inches."`
-	Right       string            `help:"Right offset in inches."`
-	Bottom      string            `help:"Bottom offset in inches."`
-	Left        string            `help:"Left offset in inches."`
-	Pages       string            `help:"Pages to place QR code on (e.g. 'front', 'back', '1-3')."`
-	Metadata    map[string]string `help:"Metadata key=value pairs."`
-}
-
-// Run sends the request.
-func (c *QRCodeCreateCmd) Run(g *Globals) error {
-	body := map[string]any{
-		"redirect_url": c.RedirectURL,
-		"description":  optString(c.Description),
-		"position":     c.Position,
-		"width":        optString(c.Width),
-		"top":          optString(c.Top),
-		"right":        optString(c.Right),
-		"bottom":       optString(c.Bottom),
-		"left":         optString(c.Left),
-		"pages":        optString(c.Pages),
-		"metadata":     nilIfEmpty(c.Metadata),
-	}
-	pruneEmpty(body)
-	out := map[string]any{}
-	return execCreateWithQuery(g, "qr_codes", "/qr_codes", url.Values{}, body, &out)
-}
-
-// QRCodeGetCmd implements GET /v1/qr_codes/:id.
-type QRCodeGetCmd struct {
-	ID string `arg:"" help:"QR code ID."`
-}
-
-// Run sends the request.
-func (c *QRCodeGetCmd) Run(g *Globals) error {
-	path, err := resourcePath("qr_codes", c.ID)
-	if err != nil {
-		return err
-	}
-	out := map[string]any{}
-	return execGet(g, path, &out)
-}
-
-// QRCodeListCmd implements GET /v1/qr_codes.
+// QRCodeListCmd implements GET /v1/qr_code_analytics.
 type QRCodeListCmd struct {
-	Limit        int    `help:"Max results." default:"10"`
-	Before       string `help:"Pagination cursor before."`
-	After        string `help:"Pagination cursor after."`
-	IncludeTotal bool   `help:"Include total count." name:"include-total"`
+	Limit        int  `help:"Max results." default:"10"`
+	Offset       int  `help:"Pagination offset."`
+	Scanned      bool `help:"Only QR codes with at least one scan event."`
+	IncludeTotal bool `help:"Include total count." name:"include-total"`
 }
 
 // Run sends the request.
 func (c *QRCodeListCmd) Run(g *Globals) error {
+	q := url.Values{}
+	if c.Limit > 0 {
+		q.Set("limit", itoa(c.Limit))
+	}
+	if c.Offset > 0 {
+		q.Set("offset", itoa(c.Offset))
+	}
+	if c.Scanned {
+		q.Set("scanned", "true")
+	}
+	if c.IncludeTotal {
+		q.Set("include[]", "total_count")
+	}
 	out := map[string]any{}
-	return execList(g, "/qr_codes", listQuery(c.Limit, c.Before, c.After, c.IncludeTotal, nil), &out)
+	return execList(g, "/qr_code_analytics", q, &out)
 }
 
-// URLShortenerCmd implements /v1/short_urls.
-type URLShortenerCmd struct {
-	Create URLShortenerCreateCmd `cmd:"" help:"Create a tracked short URL."`
-	Get    URLShortenerGetCmd    `cmd:"" help:"Retrieve a short URL."`
-	List   URLShortenerListCmd   `cmd:"" help:"List short URLs."`
+// LinksCmd implements /v1/links — Lob's URL shortener. Links are short URLs
+// (optionally rooted on a custom domain, see [DomainsCmd]) that redirect to a
+// long URL and track clicks.
+type LinksCmd struct {
+	Create LinkCreateCmd `cmd:"" help:"Create a short link."`
+	Get    LinkGetCmd    `cmd:"" help:"Retrieve a short link."`
+	List   LinkListCmd   `cmd:"" help:"List short links."`
+	Delete LinkDeleteCmd `cmd:"" help:"Delete a short link."`
 }
 
-// URLShortenerCreateCmd posts to /v1/short_urls.
-type URLShortenerCreateCmd struct {
-	RedirectURL string            `help:"Destination URL." required:"" name:"redirect-url"`
+// LinkCreateCmd posts to /v1/links.
+type LinkCreateCmd struct {
+	RedirectURL string            `help:"Long URL the short link redirects to." required:"" name:"redirect-link"`
+	DomainID    string            `help:"Optional custom domain ID (defaults to Lob's short domain)." name:"domain-id"`
 	Description string            `help:"Internal description."`
 	Metadata    map[string]string `help:"Metadata key=value pairs."`
 }
 
 // Run sends the request.
-func (c *URLShortenerCreateCmd) Run(g *Globals) error {
+func (c *LinkCreateCmd) Run(g *Globals) error {
 	body := map[string]any{
-		"redirect_url": c.RedirectURL,
-		"description":  optString(c.Description),
-		"metadata":     nilIfEmpty(c.Metadata),
+		"redirect_link": c.RedirectURL,
+		"domain_id":     optString(c.DomainID),
+		"description":   optString(c.Description),
+		"metadata":      nilIfEmpty(c.Metadata),
 	}
 	pruneEmpty(body)
 	out := map[string]any{}
-	return execCreateWithQuery(g, "short_urls", "/short_urls", url.Values{}, body, &out)
+	return execCreateWithQuery(g, "links", "/links", url.Values{}, body, &out)
 }
 
-// URLShortenerGetCmd implements GET /v1/short_urls/:id.
-type URLShortenerGetCmd struct {
-	ID string `arg:"" help:"Short URL ID."`
+// LinkGetCmd implements GET /v1/links/:id.
+type LinkGetCmd struct {
+	ID string `arg:"" help:"Link ID."`
 }
 
 // Run sends the request.
-func (c *URLShortenerGetCmd) Run(g *Globals) error {
-	path, err := resourcePath("short_urls", c.ID)
+func (c *LinkGetCmd) Run(g *Globals) error {
+	path, err := resourcePath("links", c.ID)
 	if err != nil {
 		return err
 	}
@@ -112,8 +82,8 @@ func (c *URLShortenerGetCmd) Run(g *Globals) error {
 	return execGet(g, path, &out)
 }
 
-// URLShortenerListCmd implements GET /v1/short_urls.
-type URLShortenerListCmd struct {
+// LinkListCmd implements GET /v1/links.
+type LinkListCmd struct {
 	Limit        int    `help:"Max results." default:"10"`
 	Before       string `help:"Pagination cursor before."`
 	After        string `help:"Pagination cursor after."`
@@ -121,9 +91,107 @@ type URLShortenerListCmd struct {
 }
 
 // Run sends the request.
-func (c *URLShortenerListCmd) Run(g *Globals) error {
+func (c *LinkListCmd) Run(g *Globals) error {
 	out := map[string]any{}
-	return execList(g, "/short_urls", listQuery(c.Limit, c.Before, c.After, c.IncludeTotal, nil), &out)
+	return execList(g, "/links", listQuery(c.Limit, c.Before, c.After, c.IncludeTotal, nil), &out)
+}
+
+// LinkDeleteCmd implements DELETE /v1/links/:id.
+type LinkDeleteCmd struct {
+	ID      string `arg:"" help:"Link ID."`
+	Confirm bool   `help:"Required for destructive operations." xor:"destructive"`
+	Force   bool   `help:"Alias for --confirm." xor:"destructive"`
+}
+
+// Run sends the request.
+func (c *LinkDeleteCmd) Run(g *Globals) error {
+	if err := requireConfirm(c.Confirm, c.Force); err != nil {
+		return err
+	}
+	path, err := resourcePath("links", c.ID)
+	if err != nil {
+		return err
+	}
+	out := map[string]any{}
+	return execDelete(g, path, &out)
+}
+
+// DomainsCmd implements /v1/domains — custom short-link domains. Use the
+// returned domain ID with `loby links create --domain-id` to root your short
+// URLs on your own domain instead of Lob's.
+type DomainsCmd struct {
+	Create DomainCreateCmd `cmd:"" help:"Register a custom domain for use with the URL shortener."`
+	Get    DomainGetCmd    `cmd:"" help:"Retrieve a domain."`
+	List   DomainListCmd   `cmd:"" help:"List domains."`
+	Delete DomainDeleteCmd `cmd:"" help:"Delete a domain."`
+}
+
+// DomainCreateCmd posts to /v1/domains.
+type DomainCreateCmd struct {
+	Domain      string            `help:"Domain (e.g. links.example.com)." required:""`
+	Description string            `help:"Internal description."`
+	Metadata    map[string]string `help:"Metadata key=value pairs."`
+}
+
+// Run sends the request.
+func (c *DomainCreateCmd) Run(g *Globals) error {
+	body := map[string]any{
+		"domain":      c.Domain,
+		"description": optString(c.Description),
+		"metadata":    nilIfEmpty(c.Metadata),
+	}
+	pruneEmpty(body)
+	out := map[string]any{}
+	return execCreateWithQuery(g, "domains", "/domains", url.Values{}, body, &out)
+}
+
+// DomainGetCmd implements GET /v1/domains/:id.
+type DomainGetCmd struct {
+	ID string `arg:"" help:"Domain ID."`
+}
+
+// Run sends the request.
+func (c *DomainGetCmd) Run(g *Globals) error {
+	path, err := resourcePath("domains", c.ID)
+	if err != nil {
+		return err
+	}
+	out := map[string]any{}
+	return execGet(g, path, &out)
+}
+
+// DomainListCmd implements GET /v1/domains.
+type DomainListCmd struct {
+	Limit        int    `help:"Max results." default:"10"`
+	Before       string `help:"Pagination cursor before."`
+	After        string `help:"Pagination cursor after."`
+	IncludeTotal bool   `help:"Include total count." name:"include-total"`
+}
+
+// Run sends the request.
+func (c *DomainListCmd) Run(g *Globals) error {
+	out := map[string]any{}
+	return execList(g, "/domains", listQuery(c.Limit, c.Before, c.After, c.IncludeTotal, nil), &out)
+}
+
+// DomainDeleteCmd implements DELETE /v1/domains/:id.
+type DomainDeleteCmd struct {
+	ID      string `arg:"" help:"Domain ID."`
+	Confirm bool   `help:"Required for destructive operations." xor:"destructive"`
+	Force   bool   `help:"Alias for --confirm." xor:"destructive"`
+}
+
+// Run sends the request.
+func (c *DomainDeleteCmd) Run(g *Globals) error {
+	if err := requireConfirm(c.Confirm, c.Force); err != nil {
+		return err
+	}
+	path, err := resourcePath("domains", c.ID)
+	if err != nil {
+		return err
+	}
+	out := map[string]any{}
+	return execDelete(g, path, &out)
 }
 
 // GeoCmd implements /v1/reverse_geocode_lookups.
@@ -131,17 +199,19 @@ type GeoCmd struct {
 	Reverse GeoReverseCmd `cmd:"" help:"Reverse-geocode lat/lng to ZIP codes."`
 }
 
-// GeoReverseCmd posts to /v1/reverse_geocode_lookups.
+// GeoReverseCmd posts to /v1/reverse_geocode_lookups. Coordinates use flags
+// (not positionals) so negative values like --lng=-122.4194 don't get
+// interpreted as flag short-names by the parser.
 type GeoReverseCmd struct {
-	Latitude  float64 `arg:"" help:"Latitude."`
-	Longitude float64 `arg:"" help:"Longitude."`
+	Latitude  float64 `help:"Latitude (e.g. 37.7749)." required:"" name:"lat"`
+	Longitude float64 `help:"Longitude (e.g. -122.4194)." required:"" name:"lng"`
 }
 
 // Run sends the request.
 func (c *GeoReverseCmd) Run(g *Globals) error {
 	body := map[string]any{"latitude": c.Latitude, "longitude": c.Longitude}
 	out := map[string]any{}
-	return execCreateWithQuery(g, "reverse_geocode_lookups", "/reverse_geocode_lookups", url.Values{}, body, &out)
+	return execCreateWithQuery(g, "reverse_geocode_lookups", "/us_reverse_geocode_lookups", url.Values{}, body, &out)
 }
 
 // IdentityCmd implements /v1/identity_validation.

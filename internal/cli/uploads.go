@@ -106,22 +106,21 @@ func (c *UploadGetCmd) Run(g *Globals) error {
 	return execGet(g, path, &out)
 }
 
-// UploadListCmd implements GET /v1/uploads.
+// UploadListCmd implements GET /v1/uploads. The endpoint only accepts a
+// campaignId filter — Lob rejects pagination params with HTTP 400.
 type UploadListCmd struct {
 	CampaignID string `help:"Filter by campaign ID." name:"campaign-id"`
-	Limit      int    `help:"Max results." default:"10"`
-	Before     string `help:"Pagination cursor before."`
-	After      string `help:"Pagination cursor after."`
 }
 
-// Run sends the request.
+// Run sends the request. Note: /uploads returns a bare JSON array, not Lob's
+// usual {data:[…]} envelope — hence the []map[string]any rather than List.
 func (c *UploadListCmd) Run(g *Globals) error {
-	extra := url.Values{}
+	q := url.Values{}
 	if c.CampaignID != "" {
-		extra.Set("campaignId", c.CampaignID)
+		q.Set("campaignId", c.CampaignID)
 	}
-	out := map[string]any{}
-	return execList(g, "/uploads", listQuery(c.Limit, c.Before, c.After, false, extra), &out)
+	var out []map[string]any
+	return execList(g, "/uploads", q, &out)
 }
 
 // UploadDeleteCmd implements DELETE /v1/uploads/:id.

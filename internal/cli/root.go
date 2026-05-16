@@ -47,9 +47,10 @@ type Root struct {
 	BankAccounts  BankAccountsCmd  `cmd:"" help:"Manage bank accounts for check mailing." name:"bank-accounts"`
 	BillingGroups BillingGroupsCmd `cmd:"" help:"Manage billing groups." name:"billing-groups"`
 
-	// QR / short URLs / events / proofs
-	QRCodes        QRCodesCmd        `cmd:"" help:"Create and inspect QR codes." name:"qr-codes"`
-	ShortURLs      URLShortenerCmd   `cmd:"" help:"Create and inspect short URLs." name:"short-urls"`
+	// QR analytics, URL shortener, events, proofs
+	QRCodes        QRCodesCmd        `cmd:"" help:"List QR code scan analytics." name:"qr-codes"`
+	Links          LinksCmd          `cmd:"" help:"Manage short links (Lob's URL shortener)."`
+	Domains        DomainsCmd        `cmd:"" help:"Manage custom short-link domains."`
 	Events         EventsCmd         `cmd:"" help:"List and tail Lob events."`
 	ResourceProofs ResourceProofsCmd `cmd:"" help:"Retrieve resource proof previews." name:"resource-proofs"`
 }

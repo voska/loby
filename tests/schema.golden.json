@@ -531,16 +531,16 @@
         {
           "name": "reverse",
           "help": "Reverse-geocode lat/lng to ZIP codes.",
-          "positional": [
+          "flags": [
             {
-              "name": "latitude",
-              "help": "Latitude.",
+              "name": "lat",
+              "help": "Latitude (e.g. 37.7749).",
               "type": "float64",
               "required": true
             },
             {
-              "name": "longitude",
-              "help": "Longitude.",
+              "name": "lng",
+              "help": "Longitude (e.g. -122.4194).",
               "type": "float64",
               "required": true
             }
@@ -2258,22 +2258,6 @@
               "name": "campaign-id",
               "help": "Filter by campaign ID.",
               "type": "string"
-            },
-            {
-              "name": "limit",
-              "help": "Max results.",
-              "type": "int",
-              "default": "10"
-            },
-            {
-              "name": "before",
-              "help": "Pagination cursor before.",
-              "type": "string"
-            },
-            {
-              "name": "after",
-              "help": "Pagination cursor after.",
-              "type": "string"
             }
           ]
         },
@@ -2909,88 +2893,11 @@
     },
     {
       "name": "qr-codes",
-      "help": "Create and inspect QR codes.",
+      "help": "List QR code scan analytics.",
       "subcommands": [
         {
-          "name": "create",
-          "help": "Create a QR code with a redirect URL.",
-          "flags": [
-            {
-              "name": "redirect-url",
-              "help": "Destination URL the code resolves to.",
-              "type": "string",
-              "required": true
-            },
-            {
-              "name": "description",
-              "help": "Internal description.",
-              "type": "string"
-            },
-            {
-              "name": "position",
-              "help": "Position on artwork.",
-              "type": "string",
-              "default": "bottom_right",
-              "enum": [
-                "top_left",
-                "top_right",
-                "bottom_left",
-                "bottom_right",
-                "relative"
-              ]
-            },
-            {
-              "name": "width",
-              "help": "Width in inches.",
-              "type": "string"
-            },
-            {
-              "name": "top",
-              "help": "Top offset in inches.",
-              "type": "string"
-            },
-            {
-              "name": "right",
-              "help": "Right offset in inches.",
-              "type": "string"
-            },
-            {
-              "name": "bottom",
-              "help": "Bottom offset in inches.",
-              "type": "string"
-            },
-            {
-              "name": "left",
-              "help": "Left offset in inches.",
-              "type": "string"
-            },
-            {
-              "name": "pages",
-              "help": "Pages to place QR code on (e.g. 'front', 'back', '1-3').",
-              "type": "string"
-            },
-            {
-              "name": "metadata",
-              "help": "Metadata key=value pairs.",
-              "type": "map[string]string"
-            }
-          ]
-        },
-        {
-          "name": "get",
-          "help": "Retrieve a QR code.",
-          "positional": [
-            {
-              "name": "id",
-              "help": "QR code ID.",
-              "type": "string",
-              "required": true
-            }
-          ]
-        },
-        {
           "name": "list",
-          "help": "List QR codes.",
+          "help": "List QR codes (with scan analytics).",
           "flags": [
             {
               "name": "limit",
@@ -2999,14 +2906,14 @@
               "default": "10"
             },
             {
-              "name": "before",
-              "help": "Pagination cursor before.",
-              "type": "string"
+              "name": "offset",
+              "help": "Pagination offset.",
+              "type": "int"
             },
             {
-              "name": "after",
-              "help": "Pagination cursor after.",
-              "type": "string"
+              "name": "scanned",
+              "help": "Only QR codes with at least one scan event.",
+              "type": "bool"
             },
             {
               "name": "include-total",
@@ -3018,18 +2925,23 @@
       ]
     },
     {
-      "name": "short-urls",
-      "help": "Create and inspect short URLs.",
+      "name": "links",
+      "help": "Manage short links (Lob's URL shortener).",
       "subcommands": [
         {
           "name": "create",
-          "help": "Create a tracked short URL.",
+          "help": "Create a short link.",
           "flags": [
             {
-              "name": "redirect-url",
-              "help": "Destination URL.",
+              "name": "redirect-link",
+              "help": "Long URL the short link redirects to.",
               "type": "string",
               "required": true
+            },
+            {
+              "name": "domain-id",
+              "help": "Optional custom domain ID (defaults to Lob's short domain).",
+              "type": "string"
             },
             {
               "name": "description",
@@ -3045,11 +2957,11 @@
         },
         {
           "name": "get",
-          "help": "Retrieve a short URL.",
+          "help": "Retrieve a short link.",
           "positional": [
             {
               "name": "id",
-              "help": "Short URL ID.",
+              "help": "Link ID.",
               "type": "string",
               "required": true
             }
@@ -3057,7 +2969,7 @@
         },
         {
           "name": "list",
-          "help": "List short URLs.",
+          "help": "List short links.",
           "flags": [
             {
               "name": "limit",
@@ -3079,6 +2991,121 @@
               "name": "include-total",
               "help": "Include total count.",
               "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "help": "Delete a short link.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Link ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "domains",
+      "help": "Manage custom short-link domains.",
+      "subcommands": [
+        {
+          "name": "create",
+          "help": "Register a custom domain for use with the URL shortener.",
+          "flags": [
+            {
+              "name": "domain",
+              "help": "Domain (e.g. links.example.com).",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "description",
+              "help": "Internal description.",
+              "type": "string"
+            },
+            {
+              "name": "metadata",
+              "help": "Metadata key=value pairs.",
+              "type": "map[string]string"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "help": "Retrieve a domain.",
+          "positional": [
+            {
+              "name": "id",
+              "help": "Domain ID.",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "help": "List domains.",
+          "flags": [
+            {
+              "name": "limit",
+              "help": "Max results.",
+              "type": "int",
+              "default": "10"
+            },
+            {
+              "name": "before",
+              "help": "Pagination cursor before.",
+              "type": "string"
+            },
+            {
+              "name": "after",
+              "help": "Pagination cursor after.",
+              "type": "string"
+            },
+            {
+              "name": "include-total",
+              "help": "Include total count.",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "help": "Delete a domain.",
+          "flags": [
+            {
+              "name": "confirm",
+              "help": "Required for destructive operations.",
+              "type": "bool"
+            },
+            {
+              "name": "force",
+              "help": "Alias for --confirm.",
+              "type": "bool"
+            }
+          ],
+          "positional": [
+            {
+              "name": "id",
+              "help": "Domain ID.",
+              "type": "string",
+              "required": true
             }
           ]
         }
