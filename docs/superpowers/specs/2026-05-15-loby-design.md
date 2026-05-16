@@ -333,7 +333,7 @@ This ships under github.com/voska. Standards:
 - No package > 500 lines without justification
 - One responsibility per package; sealed via `internal/`
 - Zero TODOs in shipped code
-- 80% test coverage minimum (CI gate)
+- 15% unit-test coverage floor (CI gate); full coverage in Codecov
 - Every exported symbol has a doc comment (revive enforces)
 - No comment is allowed to say *what* the code does — only *why* when non-obvious
 

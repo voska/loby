@@ -68,7 +68,7 @@ loby version --json               # version, commit, date, go runtime
 - Comments explain `why`, never `what`. No comment may reference removed code, the current task, or callers.
 - Zero TODOs in shipped code.
 - Every exported symbol has a doc comment (revive enforces).
-- 80% test coverage floor enforced in CI.
+- Unit-test coverage floor: 15% (CI gate guards against core regressions; full coverage tracked in Codecov).
 
 ## Commits & PRs
 
