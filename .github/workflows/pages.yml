@@ -6,6 +6,8 @@ on:
     paths:
       - "site/**"
       - "skills/**"
+      - "demo.gif"
+      - "demo.webm"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -32,6 +34,10 @@ jobs:
           cp -R site/* _site/
           mkdir -p _site/skill
           cp -R skills/loby/* _site/skill/
+          # VHS-generated demo assets live at the repo root so the README
+          # can embed them via the GitHub raw URL; copy them into the site
+          # so /demo.gif and /demo.webm resolve at lobycli.com too.
+          cp demo.gif demo.webm _site/
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

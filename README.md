@@ -7,13 +7,9 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/voska/loby.svg)](https://pkg.go.dev/github.com/voska/loby)
 [![MIT](https://img.shields.io/github/license/voska/loby)](LICENSE)
 
-```text
-$ loby verify us "185 Berry St, San Francisco, CA 94107" --json --select deliverability
-{"deliverability": "deliverable"}
-
-$ loby postcards create --to adr_… --front @front.html --back @back.html --json
-{"id": "psc_abc123", "status": "rendered", "carrier": "USPS", "expected_delivery_date": "…"}
-```
+<p align="center">
+  <img src="demo.gif" alt="loby demo — verify, schema, postcard dry-run, exit codes" width="800">
+</p>
 
 ## Why
 

@@ -3,116 +3,508 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>loby — Lob CLI for humans and AI agents</title>
-<meta name="description" content="loby is the canonical CLI for Lob (lob.com) — direct mail, address verification, and campaigns. Built for AI agents and humans alike.">
-<meta property="og:title" content="loby — Lob CLI">
-<meta property="og:description" content="The canonical CLI for Lob. brew install voska/tap/loby">
+<title>loby — the canonical CLI for Lob (direct mail, address verification, campaigns)</title>
+<meta name="description" content="loby is the canonical command-line interface for Lob — direct mail, US/international address verification, autocompletion, ZIP and reverse-geo lookups, identity validation, and direct-mail campaigns. Single static Go binary. Structured JSON output, stable exit codes, schema introspection, auto idempotency keys, and a drop-in agent skill for Claude Code, Codex, and Factory Droid.">
+<meta name="keywords" content="lob cli, lob api, direct mail cli, address verification cli, postcard api, lob command line, lobycli, lob go sdk, ai agent cli">
+<meta name="author" content="Matt Voska">
+<meta name="theme-color" content="#0a0c10">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="loby">
+<meta property="og:title" content="loby — the canonical CLI for Lob">
+<meta property="og:description" content="Direct mail, address verification, and campaigns for humans and AI agents. Single static Go binary, 29 Lob resources, structured JSON, stable exit codes.">
 <meta property="og:url" content="https://lobycli.com">
-<meta name="theme-color" content="#0b0d10">
+<meta property="og:image" content="https://lobycli.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="loby — the canonical CLI for Lob. brew install voska/tap/loby">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="loby — the canonical CLI for Lob">
+<meta name="twitter:description" content="Direct mail, address verification, and campaigns for humans and AI agents. brew install voska/tap/loby">
+<meta name="twitter:image" content="https://lobycli.com/og.png">
+<meta name="twitter:image:alt" content="loby — the canonical CLI for Lob. brew install voska/tap/loby">
+
 <link rel="canonical" href="https://lobycli.com">
+<link rel="alternate" type="text/plain" title="llms.txt for AI agents" href="/llms.txt">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23ff7a3d'/%3E%3Ctext x='16' y='22' font-family='ui-monospace,monospace' font-size='18' font-weight='700' fill='%230a0c10' text-anchor='middle'%3El%3C/text%3E%3C/svg%3E">
+
+<!-- JSON-LD structured data: SoftwareApplication for traditional SEO,
+     SoftwareSourceCode for code-aware search, and a FAQ block for
+     generative engines (ChatGPT/Perplexity/Gemini/Claude) that prefer
+     question-answer structure when summarizing tools. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "loby",
+      "alternateName": "Lob CLI",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "macOS, Linux, Windows",
+      "url": "https://lobycli.com",
+      "downloadUrl": "https://github.com/voska/loby/releases/latest",
+      "softwareVersion": "0.1.9",
+      "license": "https://opensource.org/licenses/MIT",
+      "author": { "@type": "Person", "name": "Matt Voska", "url": "https://github.com/voska" },
+      "description": "The canonical command-line interface for Lob (direct mail, address verification, and campaigns). Built for humans and AI agents.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "softwareHelp": { "@type": "CreativeWork", "url": "https://github.com/voska/loby#readme" },
+      "codeRepository": "https://github.com/voska/loby",
+      "programmingLanguage": "Go"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is loby?",
+          "acceptedAnswer": { "@type": "Answer", "text": "loby is the canonical command-line interface for Lob (lob.com). It covers all 29 Lob v1 API resources — postcards, letters, checks, self-mailers, snap-packs, cards, booklets, buckslips, addresses, US and international verifications, autocompletion, ZIP and reverse-geo lookups, identity validation, campaigns, creatives, uploads, templates, informed delivery, bank accounts, billing groups, QR codes, links, domains, events, and account — behind one static Go binary with structured JSON output, stable exit codes, and schema introspection." }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I install loby?",
+          "acceptedAnswer": { "@type": "Answer", "text": "On macOS or Linux: brew install voska/tap/loby. On Windows: scoop bucket add voska https://github.com/voska/scoop-bucket && scoop install loby. On any platform with curl: curl -fsSL https://lobycli.com/install.sh | sh. From source: go install github.com/voska/loby/cmd/loby@latest." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is loby designed for AI agents?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every command supports --json for structured output, --dry-run for safe previews, and loby schema --json for full command-tree introspection. Exit codes are stable and semantic (0 success, 3 empty, 4 auth, 5 not-found, 7 rate-limited, 8 retryable, etc). A drop-in SKILL.md agent skill at https://lobycli.com/skill/SKILL.md works with Claude Code, Codex, Factory Droid, and any framework that reads the canonical ~/.{agent}/skills/<name>/SKILL.md layout." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is loby affiliated with Lob, Inc?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. loby is an independent open-source MIT-licensed CLI built on top of the public Lob v1 API. \"Lob\" is a trademark of Lob, Inc." }
+        }
+      ]
+    }
+  ]
+}
+</script>
 <style>
   :root {
-    --bg: #0b0d10;
-    --fg: #e6e6e6;
+    --bg: #0a0c10;
+    --bg-elev: #11141a;
+    --fg: #ededed;
     --muted: #8a8f98;
-    --accent: #ffb84d;
-    --border: #1f2329;
-    --code-bg: #14171c;
+    --dim: #5a606c;
+    --accent: #ff7a3d;
+    --accent-soft: #ff7a3d22;
+    --border: #1d212a;
+    --rule: #14171c;
+    --green: #6ed27a;
+    --blue: #6cb6ff;
+    --yellow: #e0c382;
   }
-  * { box-sizing: border-box }
-  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
-  h1 { font-size: 3rem; margin: 0 0 0.25rem; letter-spacing: -0.02em; }
-  .tag { color: var(--muted); font-size: 1.05rem; margin: 0 0 2.5rem; }
-  h2 { margin-top: 3rem; font-size: 1.35rem; letter-spacing: -0.01em; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; }
-  pre, code { font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace; }
-  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; overflow-x: auto; font-size: 0.92rem; }
-  code { background: var(--code-bg); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.92em; }
-  pre code { background: transparent; padding: 0; }
+  @media (prefers-color-scheme: light) {
+    /* keep dark default — terminal users prefer dark; light theme is intentional pass */
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
+  body {
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--accent); color: var(--bg); }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  .install { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin: 1.5rem 0 0; }
-  .install pre { margin: 0; }
-  footer { margin-top: 5rem; color: var(--muted); font-size: 0.9rem; }
-  ul.grid { columns: 2; column-gap: 2rem; padding-left: 1.25rem; }
-  ul.grid li { break-inside: avoid; margin: 0.15rem 0; }
+  code, pre, .mono { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+
+  /* layout */
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 1.5rem; }
+  header.top {
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 0;
+    font-size: 0.92rem;
+  }
+  header.top .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  header.top .brand { font-weight: 700; letter-spacing: -0.01em; }
+  header.top .brand .dot { color: var(--accent); }
+  header.top nav { display: flex; gap: 1.5rem; }
+  header.top nav a { color: var(--muted); }
+  header.top nav a:hover { color: var(--fg); text-decoration: none; }
+
+  /* hero */
+  .hero { padding: 4.5rem 0 0; }
+  .hero .wrap { display: block; }
+  .hero-text { max-width: 720px; }
+  .hero h1 { margin: 0; font-size: clamp(2.75rem, 7vw, 4.5rem); letter-spacing: -0.035em; line-height: 1; }
+  .hero h1 .dot { color: var(--accent); }
+  .hero .tag { color: var(--muted); margin: 1.25rem 0 0; font-size: clamp(1.05rem, 1.5vw, 1.2rem); max-width: 58ch; line-height: 1.5; }
+  .hero .tag strong { color: var(--fg); font-weight: 500; }
+  .install { margin-top: 2rem; max-width: 560px; }
+  .demo-wrap { padding: 3rem 1.5rem 4rem; }
+  .install-cmd {
+    display: flex; align-items: stretch; gap: 0;
+    background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden; max-width: 100%;
+  }
+  .install-cmd .prompt { color: var(--dim); padding: 0.85rem 0.25rem 0.85rem 1rem; font-family: ui-monospace, monospace; user-select: none; }
+  .install-cmd code {
+    flex: 1; padding: 0.85rem 0.5rem; background: transparent; color: var(--fg);
+    font-size: 0.92rem; white-space: nowrap; overflow-x: auto; min-width: 0;
+  }
+  .copy {
+    border: 0; border-left: 1px solid var(--border); background: transparent;
+    color: var(--muted); padding: 0 1rem; cursor: pointer; font-family: inherit; font-size: 0.85rem;
+  }
+  .copy:hover { color: var(--accent); }
+  .copy.ok { color: var(--green); }
+
+  .tabs { display: flex; gap: 0; margin-top: 0.75rem; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+  .tabs button {
+    background: transparent; border: 0; color: var(--muted);
+    padding: 0.5rem 0.75rem; cursor: pointer; font-family: inherit;
+    font-size: 0.85rem; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .tabs button:hover { color: var(--fg); }
+  .tabs button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+
+  .cta-row { margin-top: 1.5rem; display: flex; gap: 1rem; color: var(--muted); font-size: 0.92rem; flex-wrap: wrap; }
+  .cta-row a { color: var(--muted); }
+  .cta-row a:hover { color: var(--fg); text-decoration: none; }
+  .cta-row .sep { color: var(--dim); }
+
+  /* VHS demo */
+  figure.demo { margin: 0; }
+  figure.demo video, figure.demo img {
+    width: 100%; height: auto; display: block;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: #1a1b26; /* matches Tokyo Night theme so the box never flashes */
+    box-shadow: 0 24px 48px -24px rgba(0,0,0,0.6);
+    aspect-ratio: 1200 / 720;
+  }
+  figure.demo figcaption {
+    margin-top: 0.6rem; color: var(--dim); font-size: 0.82rem; text-align: right;
+  }
+
+  /* sections */
+  section { padding: 4rem 0; border-top: 1px solid var(--rule); }
+  section h2 {
+    font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--accent); margin: 0 0 1.5rem; font-weight: 600;
+  }
+  section h2::before { content: "// "; color: var(--dim); }
+
+  /* feature cards */
+  .cards { display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .card {
+    background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.25rem 1.35rem;
+  }
+  .card h3 {
+    margin: 0 0 0.85rem; font-size: 0.92rem; color: var(--fg);
+    font-family: ui-monospace, monospace; font-weight: 600;
+  }
+  .card h3::before { content: "▸ "; color: var(--accent); }
+  .card .lead { color: var(--muted); font-size: 0.9rem; margin: 0 0 0.85rem; line-height: 1.55; }
+  .card ul { margin: 0; padding-left: 1.1rem; color: var(--fg); font-size: 0.88rem; font-family: ui-monospace, monospace; }
+  .card ul li { margin: 0.18rem 0; color: var(--muted); }
+  .card ul li code { background: transparent; padding: 0; color: var(--fg); font-size: inherit; }
+  .resource-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.15rem 1rem; padding: 0; list-style: none; margin: 0;
+    font-family: ui-monospace, monospace; font-size: 0.85rem;
+  }
+  .resource-grid li { color: var(--muted); }
+  .resource-grid li::before { content: "· "; color: var(--dim); }
+
+  /* agents section */
+  .agents-grid { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; }
+  .agents-grid p { color: var(--muted); margin: 0 0 1rem; }
+  .install-block { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1rem; }
+  .install-block code { background: transparent; padding: 0; font-size: 0.9rem; color: var(--fg); }
+  .agents-list { margin: 1.25rem 0 0; padding: 0; list-style: none; }
+  .agents-list li { padding: 0.4rem 0; border-top: 1px dashed var(--rule); display: grid; grid-template-columns: 12ch 1fr; gap: 1rem; font-size: 0.9rem; }
+  .agents-list li:first-child { border-top: 0; padding-top: 0; }
+  .agents-list .label { color: var(--accent); font-family: ui-monospace, monospace; font-size: 0.85rem; }
+  .agents-list .desc { color: var(--muted); }
+  .agents-list .desc code { background: transparent; padding: 0; color: var(--fg); font-size: 0.88em; }
+  .agents-list .desc a { color: var(--fg); border-bottom: 1px dotted var(--muted); }
+  .agents-list .desc a:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
+
+  /* exit-codes mini */
+  .codes {
+    margin: 1rem 0 0; font-family: ui-monospace, monospace; font-size: 0.85rem;
+    background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1rem 1.1rem; line-height: 1.7;
+  }
+  .codes .row { display: grid; grid-template-columns: 3ch 1fr; gap: 0.75rem; }
+  .codes .row .code { color: var(--accent); }
+  .codes .row .desc { color: var(--muted); }
+
+  /* quick reference */
+  .qref { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem 1.4rem; font-family: ui-monospace, monospace; font-size: 0.88rem; line-height: 1.7; overflow-x: auto; }
+  .qref .l { display: block; white-space: pre; min-height: 1.7em; }
+  .qref .l.blank { min-height: 0.6em; }
+  .qref .p { color: var(--accent); }
+  .qref .c { color: var(--fg); }
+  .qref .o { color: var(--muted); }
+
+  /* footer */
+  footer { border-top: 1px solid var(--border); padding: 2.5rem 0 3.5rem; color: var(--muted); font-size: 0.88rem; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; align-items: baseline; }
+  footer nav { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+  footer nav a { color: var(--muted); }
+  footer nav a:hover { color: var(--accent); text-decoration: none; }
+  footer .meta { color: var(--dim); font-size: 0.85rem; }
+
+  /* responsive */
+  @media (max-width: 880px) {
+    .hero .wrap { grid-template-columns: 1fr; gap: 2.5rem; }
+    .cards { grid-template-columns: 1fr; }
+    .agents-grid { grid-template-columns: 1fr; gap: 2rem; }
+  }
+  @media (max-width: 480px) {
+    .hero { padding: 2.5rem 0 2.5rem; }
+    section { padding: 3rem 0; }
+    header.top nav { gap: 1rem; }
+    .agents-list li { grid-template-columns: 1fr; gap: 0.1rem; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>loby</h1>
-  <p class="tag">The canonical CLI for <a href="https://lob.com">Lob</a> — direct mail, address verification, and campaigns. For humans and AI agents.</p>
 
-  <h2>Install</h2>
-  <div class="install">
-    <pre><code># macOS + Linux
-brew install voska/tap/loby</code></pre>
-    <pre><code># Windows
-scoop bucket add voska \
-  https://github.com/voska/scoop-bucket
-scoop install loby</code></pre>
-    <pre><code># Any platform
-curl -fsSL https://lobycli.com/install.sh | sh</code></pre>
-    <pre><code># From source
-go install github.com/voska/loby/cmd/loby@latest</code></pre>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">loby<span class="dot">.</span></div>
+    <nav>
+      <a href="/skill/SKILL.md">Skill</a>
+      <a href="https://github.com/voska/loby#readme">Docs</a>
+      <a href="https://github.com/voska/loby/releases">Releases</a>
+      <a href="https://github.com/voska/loby">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="border-top:0">
+  <div class="wrap hero-text">
+    <h1>loby<span class="dot">.</span></h1>
+    <p class="tag">The canonical CLI for <a href="https://lob.com">Lob</a> — direct mail, address verification, and campaigns. <strong>For humans and AI agents.</strong></p>
+
+    <div class="install">
+      <div class="install-cmd" data-tab="brew">
+        <span class="prompt">$</span>
+        <code id="install-cmd">brew install voska/tap/loby</code>
+        <button class="copy" aria-label="Copy install command" data-target="install-cmd">copy</button>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Install method">
+        <button role="tab" aria-selected="true" data-tab="brew" data-cmd="brew install voska/tap/loby">brew</button>
+        <button role="tab" aria-selected="false" data-tab="curl" data-cmd="curl -fsSL https://lobycli.com/install.sh | sh">curl</button>
+        <button role="tab" aria-selected="false" data-tab="scoop" data-cmd="scoop bucket add voska https://github.com/voska/scoop-bucket && scoop install loby">scoop</button>
+        <button role="tab" aria-selected="false" data-tab="go" data-cmd="go install github.com/voska/loby/cmd/loby@latest">go</button>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <a href="#agents">For AI agents →</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/voska/loby/releases/latest">Latest release</a>
+      <span class="sep">·</span>
+      <a href="/llms.txt">llms.txt</a>
+    </div>
   </div>
 
-  <h2>Use</h2>
-<pre><code>loby auth login --key sk_test_…
-loby verify us "185 Berry St, San Francisco, CA 94107" --json
-loby postcards create \
-  --to adr_… --front @front.html --back @back.html \
-  --size 4x6 --json</code></pre>
+  <div class="wrap demo-wrap">
+    <figure class="demo" aria-label="loby in action — verify, dry-run, schema, exit codes">
+      <video autoplay loop muted playsinline preload="metadata" poster="/demo.gif" width="1200" height="720">
+        <source src="/demo.webm" type="video/webm">
+        <img src="/demo.gif" alt="A 26-second terminal recording of loby running address verification, schema introspection, a postcard dry-run, and exit-code lookup against Lob's live API." width="1200" height="720">
+      </video>
+      <figcaption>Recorded against api.lob.com — real responses, real exit codes.</figcaption>
+    </figure>
+  </div>
+</section>
 
-  <p>Every command supports <code>--json</code>, <code>--plain</code>, <code>--dry-run</code>, <code>--select</code>, named profiles, and auto-generated idempotency keys. Discover the full surface with <code>loby schema --json</code>.</p>
+<section>
+  <div class="wrap">
+    <h2>what it does</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>every Lob resource</h3>
+        <p class="lead">All 29 v1 resources behind one binary. Mailers, verifications, campaigns, lookups — same flag conventions, same JSON envelope, same exit codes.</p>
+        <ul class="resource-grid" style="list-style:none">
+          <li>postcards</li>
+          <li>letters</li>
+          <li>checks</li>
+          <li>self-mailers</li>
+          <li>snap-packs</li>
+          <li>cards</li>
+          <li>booklets</li>
+          <li>buckslips</li>
+          <li>addresses</li>
+          <li>verify us</li>
+          <li>verify intl</li>
+          <li>bulk verify</li>
+          <li>autocomplete</li>
+          <li>zip lookup</li>
+          <li>geo reverse</li>
+          <li>identity verify</li>
+          <li>campaigns</li>
+          <li>creatives</li>
+          <li>uploads</li>
+          <li>templates</li>
+          <li>informed-delivery</li>
+          <li>bank-accounts</li>
+          <li>billing-groups</li>
+          <li>qr-codes</li>
+          <li>links</li>
+          <li>domains</li>
+          <li>events</li>
+          <li>resource-proofs</li>
+          <li>account</li>
+        </ul>
+      </div>
 
-  <h2>For AI agents</h2>
+      <div class="card">
+        <h3>built for agents</h3>
+        <p class="lead">Structured stdout, hints on stderr, never mixed. Every mutation is reversible by intent: <code>--dry-run</code>, idempotency keys, semantic exit codes.</p>
+        <ul>
+          <li><code>--json</code> &middot; default for agents</li>
+          <li><code>--plain</code> &middot; tab-separated</li>
+          <li><code>--select id,to.city</code></li>
+          <li><code>--dry-run</code> on every write</li>
+          <li><code>--results-only</code> strips envelope</li>
+          <li><code>--quiet</code> for bare IDs</li>
+          <li>auto idempotency keys</li>
+          <li>11 stable exit codes</li>
+        </ul>
+      </div>
 
-  <p>Drop the canonical skill into your agent's skills directory:</p>
-<pre><code>mkdir -p ~/.claude/skills/loby
-curl -fsSL https://lobycli.com/skill/SKILL.md \
-  > ~/.claude/skills/loby/SKILL.md</code></pre>
+      <div class="card">
+        <h3>boring stack</h3>
+        <p class="lead">Single static Go binary, zero runtime dependencies. Hand-rolled <code>net/http</code> over Lob's API — no third-party HTTP client, no junk transitive deps.</p>
+        <ul>
+          <li>Kong CLI parser</li>
+          <li>stdlib <code>net/http</code></li>
+          <li>99designs/keyring</li>
+          <li>cosign-signed releases</li>
+          <li>SBOM + provenance attest</li>
+          <li>brew &middot; scoop &middot; curl</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <p>Or install the full bundle (SKILL.md + command catalog + recipes + resource glossary):</p>
-<pre><code>curl -fsSL https://lobycli.com/skill/install.sh | sh</code></pre>
+<section id="agents">
+  <div class="wrap">
+    <h2>for AI agents</h2>
+    <div class="agents-grid">
+      <div>
+        <p>The skill is a plain <a href="/skill/SKILL.md">SKILL.md</a> file plus three reference docs — works with any agent framework that reads the canonical <code>~/.{agent}/skills/&lt;name&gt;/SKILL.md</code> layout (Claude Code, Codex, Factory Droid, etc).</p>
+        <div class="install-block">
+          <code>mkdir -p ~/.claude/skills/loby && \<br>&nbsp;&nbsp;curl -fsSL lobycli.com/skill/SKILL.md \<br>&nbsp;&nbsp;&nbsp;&nbsp;-o ~/.claude/skills/loby/SKILL.md</code>
+        </div>
+        <p style="margin-top:1rem;font-size:0.9rem;color:var(--muted)">Pull the full bundle — SKILL.md plus <a href="/skill/references/COMMANDS.md">commands</a>, <a href="/skill/references/RECIPES.md">recipes</a>, and <a href="/skill/references/RESOURCES.md">resources</a> — from the same URL space at <code>/skill/</code>. The skill teaches the agent to prefer <code>--json</code>, run <code>--dry-run</code> before live mutations, and use <code>loby schema --json</code> as the source of truth.</p>
 
-  <p>See <a href="/skill/SKILL.md">SKILL.md</a>, <a href="/skill/references/COMMANDS.md">COMMANDS.md</a>, <a href="/skill/references/RECIPES.md">RECIPES.md</a>, <a href="/skill/references/RESOURCES.md">RESOURCES.md</a>. Discovery manifest at <a href="/llms.txt">/llms.txt</a>.</p>
+        <ul class="agents-list">
+          <li>
+            <span class="label">schema</span>
+            <span class="desc"><code>loby schema [cmd] --json</code> dumps the full command tree — agents discover the surface without scraping help text.</span>
+          </li>
+          <li>
+            <span class="label">retrieval</span>
+            <span class="desc"><a href="/llms.txt">/llms.txt</a> indexes the skill and reference docs for agent retrieval pipelines.</span>
+          </li>
+          <li>
+            <span class="label">idempotency</span>
+            <span class="desc">Every mailer create auto-generates a deterministic key from command + flags + body. Retries on transient failures are safe by default.</span>
+          </li>
+          <li>
+            <span class="label">streams</span>
+            <span class="desc"><code>loby events tail --event-type postcard.created --json</code> emits one NDJSON event per line — pipe into <code>jq</code> or a webhook bridge.</span>
+          </li>
+        </ul>
+      </div>
 
-  <h2>All 29 Lob resources, one binary</h2>
-  <ul class="grid">
-    <li>postcards</li>
-    <li>letters</li>
-    <li>checks</li>
-    <li>self-mailers</li>
-    <li>snap packs</li>
-    <li>cards</li>
-    <li>booklets</li>
-    <li>buckslips</li>
-    <li>addresses</li>
-    <li>verify (us/intl)</li>
-    <li>bulk verify</li>
-    <li>CSV verify</li>
-    <li>autocomplete</li>
-    <li>ZIP lookup</li>
-    <li>reverse geocode</li>
-    <li>identity validation</li>
-    <li>campaigns</li>
-    <li>informed delivery</li>
-    <li>creatives</li>
-    <li>uploads</li>
-    <li>templates (+ versions)</li>
-    <li>bank accounts</li>
-    <li>billing groups</li>
-    <li>QR codes</li>
-    <li>short URLs</li>
-    <li>events</li>
-    <li>resource proofs</li>
-    <li>accounts</li>
-  </ul>
+      <div>
+        <p style="font-size:0.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin:0 0 0.6rem">exit codes</p>
+        <div class="codes">
+          <div class="row"><span class="code">0</span><span class="desc">success</span></div>
+          <div class="row"><span class="code">1</span><span class="desc">error</span></div>
+          <div class="row"><span class="code">2</span><span class="desc">usage</span></div>
+          <div class="row"><span class="code">3</span><span class="desc">empty result</span></div>
+          <div class="row"><span class="code">4</span><span class="desc">auth required</span></div>
+          <div class="row"><span class="code">5</span><span class="desc">not found</span></div>
+          <div class="row"><span class="code">6</span><span class="desc">forbidden</span></div>
+          <div class="row"><span class="code">7</span><span class="desc">rate limited &middot; transient</span></div>
+          <div class="row"><span class="code">8</span><span class="desc">retryable &middot; transient</span></div>
+          <div class="row"><span class="code">9</span><span class="desc">payment required</span></div>
+          <div class="row"><span class="code">10</span><span class="desc">config error</span></div>
+        </div>
+        <p style="font-size:0.82rem;color:var(--muted);margin-top:0.75rem">Authoritative: <code>loby exit-codes --json</code></p>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <footer>
-    <p>MIT — © 2026 Matt Voska. Not affiliated with Lob, Inc. Source on <a href="https://github.com/voska/loby">GitHub</a>.</p>
-  </footer>
-</main>
+<section>
+  <div class="wrap">
+    <h2>quick reference</h2>
+    <div class="qref">
+<span class="l"><span class="o"># Authenticate with a test key (test_…) or live key (live_…).</span></span>
+<span class="l"><span class="p">$</span> <span class="c">loby auth login --profile prod</span></span>
+<span class="l"></span>
+<span class="l"><span class="o"># Verify before mailing.</span></span>
+<span class="l"><span class="p">$</span> <span class="c">loby verify us "185 Berry St, San Francisco, CA 94107" --json</span></span>
+<span class="l"></span>
+<span class="l"><span class="o"># Save a recipient.</span></span>
+<span class="l"><span class="p">$</span> <span class="c">loby addresses create --name "Alice Park" --line1 "185 Berry St" \</span></span>
+<span class="l">    <span class="c">--city "San Francisco" --state CA --zip 94107 --json</span></span>
+<span class="l"></span>
+<span class="l"><span class="o"># Dry-run a postcard.</span></span>
+<span class="l"><span class="p">$</span> <span class="c">loby postcards create --to adr_… --front @front.html --back @back.html \</span></span>
+<span class="l">    <span class="c">--size 4x6 --dry-run --json</span></span>
+<span class="l"></span>
+<span class="l"><span class="o"># Inspect the whole command surface.</span></span>
+<span class="l"><span class="p">$</span> <span class="c">loby schema --json | jq</span></span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="meta">MIT &middot; © 2026 Matt Voska &middot; Not affiliated with Lob, Inc.</div>
+    <nav>
+      <a href="https://github.com/voska/loby">GitHub</a>
+      <a href="https://github.com/voska/loby/releases">Releases</a>
+      <a href="/skill/SKILL.md">Skill</a>
+      <a href="/llms.txt">llms.txt</a>
+      <a href="/install.sh">install.sh</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  // OS / install-method tabs — swap the displayed command + active state.
+  const cmdEl = document.getElementById('install-cmd');
+  document.querySelectorAll('.tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b === btn ? 'true' : 'false'));
+      cmdEl.textContent = btn.dataset.cmd;
+    });
+  });
+
+  // Copy-to-clipboard. Uses Clipboard API; gracefully no-ops without it.
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (!target || !navigator.clipboard) return;
+      try {
+        await navigator.clipboard.writeText(target.textContent.trim());
+        const orig = btn.textContent;
+        btn.textContent = '✓ copied';
+        btn.classList.add('ok');
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove('ok'); }, 1500);
+      } catch {}
+    });
+  });
+</script>
 </body>
 </html>

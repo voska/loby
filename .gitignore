@@ -11,3 +11,6 @@ dist/
 !.env.example
 .DS_Store
 coverage.*
+
+# Local preview screenshots from site iteration (chrome-devtools captures).
+.preview-*.png

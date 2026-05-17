@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# llms.txt and SKILL.md are intended for retrieval by AI agents and
+# generative-search crawlers — explicit allow for clarity.
+Allow: /llms.txt
+Allow: /skill/
+
+Sitemap: https://lobycli.com/sitemap.xml
