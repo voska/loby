@@ -14,14 +14,15 @@ type EventsCmd struct {
 	Get  EventGetCmd  `cmd:"" help:"Retrieve a single event by ID."`
 }
 
-// EventListCmd implements GET /v1/events.
+// EventListCmd implements GET /v1/events. Lob's API only filters by
+// event_type (and date_created) server-side — there is no resource_type
+// query param. Use --event-type postcard.created / .delivered / etc.
 type EventListCmd struct {
-	Limit        int    `help:"Max results (1-100)." default:"10"`
-	Before       string `help:"Pagination cursor before."`
-	After        string `help:"Pagination cursor after."`
-	EventType    string `help:"Filter by event type (e.g. postcard.created)." name:"event-type"`
-	ResourceType string `help:"Filter by resource type." name:"resource-type"`
-	DateCreated  string `help:"Filter on date_created (RFC3339 range, e.g. 'gte:2026-01-01,lt:2026-02-01')." name:"date-created"`
+	Limit       int    `help:"Max results (1-100)." default:"10"`
+	Before      string `help:"Pagination cursor before."`
+	After       string `help:"Pagination cursor after."`
+	EventType   string `help:"Filter by event type (e.g. postcard.created, letter.delivered)." name:"event-type"`
+	DateCreated string `help:"Filter on date_created (RFC3339 range, e.g. 'gte:2026-01-01,lt:2026-02-01')." name:"date-created"`
 }
 
 // Run sends the request.
@@ -29,9 +30,6 @@ func (c *EventListCmd) Run(g *Globals) error {
 	extra := url.Values{}
 	if c.EventType != "" {
 		extra.Set("event_type", c.EventType)
-	}
-	if c.ResourceType != "" {
-		extra.Set("resource_type", c.ResourceType)
 	}
 	if c.DateCreated != "" {
 		extra.Set("date_created", c.DateCreated)
@@ -56,11 +54,12 @@ func (c *EventGetCmd) Run(g *Globals) error {
 }
 
 // EventTailCmd polls the event log and streams new events as NDJSON. Designed
-// for agents that need a long-running tail without webhooks.
+// for agents that need a long-running tail without webhooks. Lob only supports
+// filtering by event_type server-side — pass a comma-separated list to
+// --event-type to narrow by resource.
 type EventTailCmd struct {
-	Interval     time.Duration `help:"Poll interval." default:"5s"`
-	ResourceType string        `help:"Filter by resource type." name:"resource-type"`
-	EventType    string        `help:"Filter by event type." name:"event-type"`
+	Interval  time.Duration `help:"Poll interval." default:"5s"`
+	EventType string        `help:"Filter by event type (e.g. postcard.created)." name:"event-type"`
 }
 
 // Run polls events until the context is canceled.
@@ -80,9 +79,6 @@ func (c *EventTailCmd) Run(g *Globals) error {
 		q.Set("limit", strconv.Itoa(20))
 		if c.EventType != "" {
 			q.Set("event_type", c.EventType)
-		}
-		if c.ResourceType != "" {
-			q.Set("resource_type", c.ResourceType)
 		}
 		out := struct {
 			Data []map[string]any `json:"data"`

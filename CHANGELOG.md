@@ -4,6 +4,17 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.1.9] — 2026-05-16
+
+### Removed
+- `--resource-type` flag on `events list` and `events tail`. Lob's
+  `/v1/events` API filters by `event_type` server-side only; the
+  `resource_type` query parameter doesn't exist and produces
+  `422 invalid: resource_type is not allowed` on every call.
+  Agents should filter on `--event-type postcard.created` (or
+  `letter.delivered`, `check.in_transit`, etc.) instead. Docs
+  updated in SKILL/COMMANDS/RECIPES/README.
+
 ## [0.1.8] — 2026-05-16
 
 ### Fixed

@@ -133,7 +133,7 @@ Lob's URL shortener has two resources: `links` (short URLs) and `domains` (custo
 
 | Command | Purpose |
 | --- | --- |
-| `loby events list [--resource-type postcards] [--event-type postcard.created]` | Paginate events. |
+| `loby events list [--event-type postcard.created]` | Paginate events (Lob's API filters by event_type only — there is no resource_type query param). |
 | `loby events tail --interval 5s` | NDJSON stream of new events. |
 | `loby events get <evt_id>` | Single event. |
 | `loby resource-proofs get <id>` | PDF preview of a printed asset. |

@@ -53,7 +53,7 @@ loby checks create --to "$adr" --bank-account "$bank" --amount 250.00 \
 ## Recipe 4 — Stream events into a log
 
 ```bash
-loby events tail --resource-type postcards --interval 10s --json \
+loby events tail --event-type postcard.created --interval 10s --json \
   | tee -a events.ndjson
 ```
 

@@ -73,7 +73,7 @@ loby uploads file <upl_id> ./recipients.csv --json
 loby campaigns send cmp_… --confirm --json
 
 # Stream events.
-loby events tail --resource-type postcards --json | tee events.ndjson
+loby events tail --event-type postcard.created --json | tee events.ndjson
 ```
 
 Every command supports `--dry-run`, `--json`, `--plain`, `--select`, `--profile`, `--idempotency-key`. Discover everything:
