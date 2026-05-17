@@ -47,6 +47,8 @@ Quick reference for what each Lob resource is and which `loby` command group man
 
 ## Authentication environments
 
-- Keys prefixed `sk_test_…` operate in the sandbox — no postage charged, no actual mail.
-- Keys prefixed `sk_live_…` operate in production — real postage, real mail, real money.
+- Keys prefixed `test_…` operate in the sandbox — no postage charged, no actual mail.
+- Keys prefixed `live_…` operate in production — real postage, real mail, real money.
+- Publishable variants `test_pub_…` / `live_pub_…` exist for browser-side use; they're limited to address verification, US autocompletion, and ZIP/geo lookups and 401 on every other endpoint.
+- Live keys 401 with `invalid_api_key` until the account has verified its email AND added a payment method (a credit card or bank account on file — Lob Credits don't substitute).
 - Identify the active environment with `loby auth status --json` (`environment` field).

@@ -20,11 +20,11 @@ Verify: `loby version`.
 ## Authenticate
 
 ```bash
-loby auth login --key sk_test_…
+loby auth login --key test_…
 loby auth status --json
 ```
 
-Lob keys are prefixed `sk_test_…` (sandbox) or `sk_live_…` (live). Use test keys until the user explicitly authorizes live. `LOB_API_KEY=…` works for one-shot use.
+Lob keys are prefixed `test_…` (sandbox) or `live_…` (production); publishable keys (limited to address verification, autocompletion, and ZIP/geo lookups) use `test_pub_…` or `live_pub_…`. Use test keys until the user explicitly authorizes live. `LOB_API_KEY=…` works for one-shot use. Live keys 401 with `invalid_api_key` until the account has verified its email AND added a payment method — adding Lob Credits is not sufficient.
 
 ## Rules for agents (read these once)
 
@@ -57,6 +57,13 @@ Lob keys are prefixed `sk_test_…` (sandbox) or `sk_live_…` (live). Use test 
 - `informed-delivery create` and other multipart endpoints take real files via `--ride-along-image @path.jpg`.
 - `geo reverse` takes `--lat` and `--lng` (use `--lng=-122.4` for negative longitudes so the parser doesn't read `-` as a short flag).
 - `identity verify` takes `--recipient` (full name) or `--company`, plus a US address via `--primary-line` etc.
+- `creatives create` is the exception to the HTML rule: Lob rejects inline HTML on `/v1/creatives` and only accepts PDF URLs or `tmpl_…` template IDs on `--front/--back/--cover/--file`. Postcards/letters/etc. accept inline HTML; campaign creatives don't.
+
+## Surface limits
+
+- **Campaigns** are write-once at create time — no update verb exists in the API.
+- **Creatives** are POST-only (`/v1/creatives`); they have no get, list, update, or delete.
+- **Upload exports** support create + get only — there is no listing endpoint. The `create` response returns the export ID in `.exportId` (camelCase), not `.id`.
 
 ## Cancel semantics
 

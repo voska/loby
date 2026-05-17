@@ -47,7 +47,7 @@ Verify: `loby version`.
 
 ```bash
 loby auth login                          # interactive prompt
-loby auth login --key sk_test_…          # one-shot
+loby auth login --key test_…          # one-shot
 loby auth status --json                  # confirm
 ```
 
@@ -135,7 +135,7 @@ cd loby
 make ci          # fmt-check + vet + lint + test + build
 make build       # bin/loby
 make test        # unit
-make test-integration  # requires LOB_API_KEY=sk_test_…
+make test-integration  # requires LOB_API_KEY=test_…
 ```
 
 See [AGENTS.md](AGENTS.md) for the build contract and [docs/superpowers/specs/2026-05-15-loby-design.md](docs/superpowers/specs/2026-05-15-loby-design.md) for the spec.

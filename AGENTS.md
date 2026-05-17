@@ -7,7 +7,7 @@
 ```
 make build           # bin/loby
 make test            # unit, race detector on
-make test-integration # requires LOB_API_KEY=sk_test_...
+make test-integration # requires LOB_API_KEY=test_...
 make lint            # golangci-lint v2
 make fmt             # gofumpt + goimports
 make ci              # fmt-check + vet + lint + test + build (the gate)

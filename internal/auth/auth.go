@@ -150,11 +150,14 @@ func Resolve(flag, profileName string, store *Store) (Resolved, error) {
 }
 
 // Environment classifies an API key as test or live by its prefix.
+// Lob uses `live_…` / `test_…` for secret keys and `live_pub_…` /
+// `test_pub_…` for publishable; the live/test classification is the
+// same in both cases.
 func Environment(key string) string {
 	switch {
-	case strings.HasPrefix(key, "live_") || strings.HasPrefix(key, "sk_live_"):
+	case strings.HasPrefix(key, "live_"):
 		return "live"
-	case strings.HasPrefix(key, "test_") || strings.HasPrefix(key, "sk_test_"):
+	case strings.HasPrefix(key, "test_"):
 		return "test"
 	case key == "":
 		return ""

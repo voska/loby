@@ -4,6 +4,33 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.1.6] — 2026-05-16
+
+Skill + auth alignment with Lob's actual key formats and live-mode rules.
+
+### Fixed
+- API key prefix validation. Lob's real key prefixes are `live_…` /
+  `test_…` (and `live_pub_…` / `test_pub_…` for publishable). `loby`
+  previously also accepted Stripe-style `sk_live_…` / `sk_test_…` and
+  documented those in `SKILL.md`, `RESOURCES.md`, `README.md`, and
+  `AGENTS.md` — agents following the docs would have typed a prefix
+  that Lob's API will never authenticate. Validation and every doc
+  reference now match Lob's published format.
+
+### Documented
+- Live-mode prerequisite: live keys 401 with `invalid_api_key` until
+  the account has verified its email AND added a payment method.
+  Adding Lob Credits is not sufficient. Surfaced in `SKILL.md` and
+  `RESOURCES.md` so agents recognize the error and route to the right
+  remediation (dashboard → Billing → add card) rather than treating
+  it as a `loby` bug or rolling the key.
+- The `creatives create` PDF-only / template-only constraint. Lob's
+  `/v1/creatives` rejects inline HTML even though every other artwork
+  endpoint accepts it. Now called out alongside the argument
+  conventions in `SKILL.md`.
+- Write-once + missing-verb summary in `SKILL.md` (campaigns have no
+  update, creatives are POST-only, upload exports have no list).
+
 ## [0.1.5] — 2026-05-16
 
 End-to-end live-mode verification (49 PASS / 16 SKIP / 0 FAIL against

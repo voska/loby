@@ -248,7 +248,7 @@ loby completion bash|zsh|fish|powershell # shell completion script
 3. Keyring entry for `--profile` (default: `default`)
 4. Fail with exit code 4 and the line: `loby auth login` to fix
 
-**Profiles:** `loby auth login --profile prod` stores the key under that name. `LOB_PROFILE` env selects the active profile. Test vs live is inferred from key prefix (`sk_test_` vs `sk_live_`) and surfaced in `auth status`.
+**Profiles:** `loby auth login --profile prod` stores the key under that name. `LOB_PROFILE` env selects the active profile. Test vs live is inferred from key prefix (`test_` vs `live_`) and surfaced in `auth status`.
 
 **No secrets in config files. Ever.**
 
@@ -303,7 +303,7 @@ curl -fsSL https://lobycli.com/install.sh | sh
 ## Testing
 
 - **Unit:** `*_test.go` next to source, race detector on, `httptest` for HTTP mocks
-- **Integration:** `//go:build integration` build tag; `LOB_API_KEY=sk_test_...` required; CI runs on PRs from trusted contributors only
+- **Integration:** `//go:build integration` build tag; `LOB_API_KEY=test_...` required; CI runs on PRs from trusted contributors only
 - **Schema snapshot:** `loby schema --json` golden file in `tests/schema.golden.json`; mismatch fails CI (forces semver discipline)
 - **Live smoke:** `scripts/live-test.sh` — `loby addresses verify`, `loby postcards create --dry-run`, `loby account`
 

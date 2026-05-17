@@ -50,9 +50,11 @@ func TestValidKey(t *testing.T) {
 	}{
 		{"test_abcdefghijklmnopqrstuvwxyz0123456", true},
 		{"live_abcdefghijklmnop", true},
-		{"sk_test_abcdefghijk", true},
-		{"sk_live_abcdefghijk", true},
+		{"live_pub_abcdefghijklmnop", true},
+		{"test_pub_abcdefghijklmnop", true},
 		{"test_short", false},
+		{"sk_test_abcdefghijk", false},
+		{"sk_live_abcdefghijk", false},
 		{"bogus_xxxxxxxxxxxxx", false},
 		{"", false},
 	}

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # scripts/live-smoke.sh — exercise every loby command against api.lob.com.
 #
-# Requires:  $LOB_API_KEY=sk_test_…  (or test_…)
+# Requires:  $LOB_API_KEY=test_…  (or test_…)
 # Prints:    [ok] / [SKIP] / [FAIL]  per check, plus a final tally.
 # Exits:     non-zero if any [FAIL] occurred (SKIP does not fail the run).
 #
 # Designed to run from the repo root. Builds bin/loby if missing.
 set -uo pipefail
 
-: "${LOB_API_KEY:?set LOB_API_KEY to a Lob test key (sk_test_… or test_…)}"
+: "${LOB_API_KEY:?set LOB_API_KEY to a Lob test key (test_… or test_…)}"
 [ -x ./bin/loby ] || make build >/dev/null
 
 LOBY=./bin/loby

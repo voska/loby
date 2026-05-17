@@ -41,7 +41,7 @@ func (c *AuthLoginCmd) Run(g *Globals) error {
 		key = k
 	}
 	if !validKey(key) {
-		return errfmt.Wrap(errfmt.UsageError, errors.New("invalid Lob API key (must start with live_, test_, sk_live_, or sk_test_)"))
+		return errfmt.Wrap(errfmt.UsageError, errors.New("invalid Lob API key (must start with live_ or test_)"))
 	}
 
 	store, err := auth.Open()
@@ -178,10 +178,14 @@ func promptKey(stdin io.Reader, stderr io.Writer, profile string) (string, error
 	return strings.TrimSpace(line), nil
 }
 
+// validKey accepts Lob's published key formats: `live_…` / `test_…` for
+// secrets and `live_pub_…` / `test_pub_…` for publishable. Lob secret
+// keys are 40 chars (prefix + 35-char body); publishable keys are 44.
+// We only require non-trivial length here — Lob is the source of truth on
+// validity at request time.
 func validKey(k string) bool {
 	switch {
-	case strings.HasPrefix(k, "live_"), strings.HasPrefix(k, "test_"),
-		strings.HasPrefix(k, "sk_live_"), strings.HasPrefix(k, "sk_test_"):
+	case strings.HasPrefix(k, "live_"), strings.HasPrefix(k, "test_"):
 		return len(k) > 10
 	default:
 		return false
