@@ -4,6 +4,15 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.1.8] — 2026-05-16
+
+### Fixed
+- `LOBY_KEYRING_PASSWORD=""` (an explicit empty string) is now honored
+  as a blank unlock password. The v0.1.7 implementation checked
+  `os.Getenv() != ""`, which conflates "set to empty" with "not set"
+  and forced users whose file keyring uses a blank password to enter
+  it interactively every invocation. Switched to `os.LookupEnv`.
+
 ## [0.1.7] — 2026-05-16
 
 ### Fixed

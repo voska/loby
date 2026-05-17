@@ -184,7 +184,10 @@ func Prefix(key string) string {
 // macOS denies, BSDs). LOBY_KEYRING_PASSWORD lets CI / scripted setups
 // avoid the interactive prompt.
 func filePassword(prompt string) (string, error) {
-	if p := os.Getenv(keyringPassEnv); p != "" {
+	// LookupEnv distinguishes "set to empty string" (an explicit blank
+	// password) from "not set at all". A blank password is unusual but
+	// valid for 99designs/keyring and we shouldn't second-guess the user.
+	if p, ok := os.LookupEnv(keyringPassEnv); ok {
 		return p, nil
 	}
 	if !term.IsTerminal(int(os.Stdin.Fd())) {
