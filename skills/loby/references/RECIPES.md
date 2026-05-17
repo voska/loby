@@ -70,11 +70,12 @@ tmpl_back=$(loby templates create --description "Promo back" --html @back.html -
 cmp=$(loby campaigns create --name "Q3 Spring Promo" --schedule-type in_future \
   --send-date 2026-07-01 --json | jq -r .id)
 
-# Creative.
+# Creative. Lob's /v1/creatives expects PDF URLs or template_ids on
+# --front/--back; inline HTML is rejected. Mail type lives in details:{}
+# alongside size.
 loby creatives create --campaign-id "$cmp" --resource-type postcard \
-  --from "$adr" \
-  --details "{\"front\":\"$tmpl_front\",\"back\":\"$tmpl_back\",\"size\":\"4x6\"}" \
-  --json
+  --front "$tmpl_front" --back "$tmpl_back" \
+  --size 4x6 --mail-type usps_first_class --json
 
 # CSV upload.
 upl=$(loby uploads create --campaign-id "$cmp" --json | jq -r .id)
@@ -85,9 +86,9 @@ while [ "$(loby uploads get "$upl" --json | jq -r .state)" != "validated" ]; do
   sleep 30
 done
 
-# (Optional) inspect row errors before sending. `uploads exports` requires
-# campaigns (live-mode feature).
-export_id=$(loby uploads exports create "$upl" --type failures --json | jq -r .id)
+# (Optional) inspect row errors before sending. Export create returns the
+# job id under .exportId (not .id). `uploads exports` is a live-mode feature.
+export_id=$(loby uploads exports create "$upl" --type failures --json | jq -r .exportId)
 loby uploads exports get "$upl" "$export_id" --json
 
 # Submit.

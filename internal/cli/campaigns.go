@@ -2,12 +2,12 @@ package cli
 
 import "net/url"
 
-// CampaignsCmd implements /v1/campaigns.
+// CampaignsCmd implements /v1/campaigns. Lob exposes no update endpoint —
+// campaign settings are write-once at create-time.
 type CampaignsCmd struct {
 	Create CampaignCreateCmd `cmd:"" help:"Create a campaign."`
 	Get    CampaignGetCmd    `cmd:"" help:"Retrieve a campaign."`
 	List   CampaignListCmd   `cmd:"" help:"List campaigns."`
-	Update CampaignUpdateCmd `cmd:"" help:"Update a campaign."`
 	Delete CampaignDeleteCmd `cmd:"" help:"Delete a campaign."`
 	Send   CampaignSendCmd   `cmd:"" help:"Submit a campaign for processing (no longer editable)."`
 }
@@ -70,42 +70,6 @@ type CampaignListCmd struct {
 func (c *CampaignListCmd) Run(g *Globals) error {
 	out := map[string]any{}
 	return execList(g, "/campaigns", listQuery(c.Limit, c.Before, c.After, c.IncludeTotal, nil), &out)
-}
-
-// CampaignUpdateCmd implements POST /v1/campaigns/:id.
-type CampaignUpdateCmd struct {
-	ID           string            `arg:"" help:"Campaign ID."`
-	Name         string            `help:"New name."`
-	Description  string            `help:"New description."`
-	SendDate     string            `help:"New send date." name:"send-date"`
-	BillingGroup string            `help:"Billing group ID." name:"billing-group-id"`
-	Metadata     map[string]string `help:"Replace metadata."`
-}
-
-// Run sends the request.
-func (c *CampaignUpdateCmd) Run(g *Globals) error {
-	path, err := resourcePath("campaigns", c.ID)
-	if err != nil {
-		return err
-	}
-	body := map[string]any{}
-	if c.Name != "" {
-		body["name"] = c.Name
-	}
-	if c.Description != "" {
-		body["description"] = c.Description
-	}
-	if c.SendDate != "" {
-		body["send_date"] = c.SendDate
-	}
-	if c.BillingGroup != "" {
-		body["billing_group_id"] = c.BillingGroup
-	}
-	if len(c.Metadata) > 0 {
-		body["metadata"] = c.Metadata
-	}
-	out := map[string]any{}
-	return execCreateWithQuery(g, "campaigns.update", path, url.Values{}, body, &out)
 }
 
 // CampaignDeleteCmd implements DELETE /v1/campaigns/:id.

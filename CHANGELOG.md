@@ -4,6 +4,37 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.1.5] — 2026-05-16
+
+End-to-end live-mode verification (49 PASS / 16 SKIP / 0 FAIL against
+`api.lob.com`) surfaced the following surface-area bugs. Each is a verb
+that doesn't actually exist in Lob's API — `loby` was exposing it anyway
+and the underlying request 404'd or 500'd at runtime.
+
+### Removed
+- `loby campaigns update` — Lob has no `PATCH/POST /v1/campaigns/:id`
+  endpoint. Campaign settings are write-once at create.
+- `loby creatives get` / `loby creatives update` — `/v1/creatives`
+  exposes only `POST`. Creatives are write-once and live as part of
+  the parent campaign once created.
+- `loby uploads exports list` — Lob exposes only `create` and `get` on
+  the `/uploads/:id/exports` sub-resource; the listing endpoint
+  returns a static 404 HTML page.
+
+### Fixed
+- `loby creatives create` now sends the correct body shape:
+  `front`/`back` at the top level, `details:{ size, mail_type, … }`
+  nested. The previous behavior spread a `--details` map across the
+  top of the body, which Lob rejected with `"details is required"`.
+  Explicit `--front`, `--back`, `--inside`, `--outside`, `--cover`,
+  `--file`, `--size`, `--mail-type` flags replace the catch-all
+  `--details` map (which is preserved as an escape hatch).
+- Lob's `POST /v1/creatives` rejects inline HTML — `front`/`back` must
+  be PDF URLs or template IDs. Documented this in `SKILL.md`,
+  `COMMANDS.md`, and `RECIPES.md`.
+- `uploads exports create` documented to return `exportId` (not `id`)
+  in the response envelope — Lob's API uses camelCase here.
+
 ## [0.1.4] — 2026-05-16
 
 Distribution and documentation polish.

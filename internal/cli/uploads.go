@@ -144,9 +144,9 @@ func (c *UploadDeleteCmd) Run(g *Globals) error {
 }
 
 // UploadExportsCmd manages export jobs that produce row-by-row error reports.
+// Lob exposes only create + get on this sub-resource; no list endpoint exists.
 type UploadExportsCmd struct {
 	Create UploadExportCreateCmd `cmd:"" help:"Create an export job for an upload."`
-	List   UploadExportListCmd   `cmd:"" help:"List export jobs for an upload."`
 	Get    UploadExportGetCmd    `cmd:"" help:"Retrieve a specific export job."`
 }
 
@@ -165,21 +165,6 @@ func (c *UploadExportCreateCmd) Run(g *Globals) error {
 	body := map[string]any{"type": c.Type}
 	out := map[string]any{}
 	return execCreateWithQuery(g, "uploads.exports", path+"/exports", url.Values{}, body, &out)
-}
-
-// UploadExportListCmd implements GET /v1/uploads/:id/exports.
-type UploadExportListCmd struct {
-	ID string `arg:"" help:"Upload ID."`
-}
-
-// Run sends the request.
-func (c *UploadExportListCmd) Run(g *Globals) error {
-	path, err := resourcePath("uploads", c.ID)
-	if err != nil {
-		return err
-	}
-	out := map[string]any{}
-	return execGet(g, path+"/exports", &out)
 }
 
 // UploadExportGetCmd implements GET /v1/uploads/:id/exports/:ex_id.

@@ -80,18 +80,18 @@ CRUD verbs: `create`, `get <id>`, `list`, `delete <id> --confirm`.
 | `loby campaigns create --name … --schedule-type immediate\|in_future` | Create campaign. |
 | `loby campaigns get <cmp_id>` | Retrieve. |
 | `loby campaigns list` | Paginate. |
-| `loby campaigns update <cmp_id> …` | Update name/description/send_date. |
 | `loby campaigns delete <cmp_id> --confirm` | Delete (only before send). |
 | `loby campaigns send <cmp_id> --confirm` | Submit for processing. Irreversible. |
 | `loby informed-delivery create --campaign-id …` | Informed Delivery campaign. |
-| `loby creatives create --campaign-id … --resource-type postcard --from …` | Campaign artwork. |
+| `loby creatives create --campaign-id … --resource-type postcard --front <pdf-url> --back <pdf-url> --size 4x6 --mail-type usps_first_class` | Create campaign artwork. PDFs/template_ids only — Lob rejects inline HTML on this endpoint. Create-only: no get/update/delete. |
 | `loby uploads create --campaign-id …` | Upload metadata record. |
 | `loby uploads file <upl_id> ./recipients.csv` | Attach the CSV. |
 | `loby uploads get <upl_id>` | Retrieve upload (status is in the body). |
-| `loby uploads exports create <upl_id> --type failures` | Generate row-error report. |
-| `loby uploads exports list <upl_id>` | List export jobs. |
+| `loby uploads exports create <upl_id> --type failures` | Generate row-error report (response uses `exportId`, not `id`). |
 | `loby uploads exports get <upl_id> <ex_id>` | Retrieve a specific export. |
 | `loby uploads report <upl_id>` | Line-item report (feature-flagged). |
+
+Lob exposes **no update endpoint** for campaigns or creatives, and **no list endpoint** for upload exports — those verbs would 404. Settings on both resources are write-once at create time.
 
 ## Templates
 
