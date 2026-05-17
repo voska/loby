@@ -19,7 +19,7 @@ import (
 const (
 	serviceName    = "loby"
 	envVar         = "LOB_API_KEY"
-	keyringPassEnv = "LOBY_KEYRING_PASSWORD"
+	keyringPassEnv = "LOBY_KEYRING_PASSWORD" //nolint:gosec // env var name, not a credential
 )
 
 // Source describes where a resolved key came from. Useful for `auth status`.
