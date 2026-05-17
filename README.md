@@ -51,7 +51,7 @@ loby auth login --key test_…          # one-shot
 loby auth status --json                  # confirm
 ```
 
-Keys live in the OS keychain (Keychain on macOS, secret-service on Linux, Credential Manager on Windows). Override per-invocation with `--api-key` or `LOB_API_KEY`. Use named profiles for test vs live: `loby auth login --profile prod`.
+Keys live in an encrypted file keyring under `$XDG_CONFIG_HOME/loby/` (default `~/.config/loby/`). The released binaries are CGO-free for portable cross-platform builds, which means we can't link the platform-native keychain APIs — the file backend prompts for an unlock password on first read and write. Set `LOBY_KEYRING_PASSWORD` for headless/CI use. Override the key per-invocation with `--api-key` or `LOB_API_KEY`. Use named profiles for test vs live: `loby auth login --profile prod`.
 
 ## Use
 

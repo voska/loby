@@ -4,6 +4,25 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.1.7] — 2026-05-16
+
+### Fixed
+- `loby auth login` no longer SIGSEGVs immediately after reading the
+  API key. Root cause: the released binaries are built with
+  `CGO_ENABLED=0` for portable cross-platform static builds, so
+  99designs/keyring's platform-native backends (macOS Keychain,
+  secret-service, WinCred) aren't compiled in — every platform falls
+  through to the file-backed backend. That backend requires a
+  `FilePasswordFunc` callback for unlock, which we never supplied;
+  the library nil-deref'd the moment a write was attempted. Now
+  wired up to prompt via `term.ReadPassword` on a TTY and to honor
+  `LOBY_KEYRING_PASSWORD` for headless/CI use.
+
+### Documented
+- README now states honestly that keys live in an encrypted file under
+  `$XDG_CONFIG_HOME/loby/`, not the OS-native keychain — that claim
+  had been aspirational since day one.
+
 ## [0.1.6] — 2026-05-16
 
 Skill + auth alignment with Lob's actual key formats and live-mode rules.

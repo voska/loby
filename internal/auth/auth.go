@@ -11,13 +11,15 @@ import (
 	"strings"
 
 	"github.com/99designs/keyring"
+	"golang.org/x/term"
 
 	"github.com/voska/loby/internal/errfmt"
 )
 
 const (
-	serviceName = "loby"
-	envVar      = "LOB_API_KEY"
+	serviceName    = "loby"
+	envVar         = "LOB_API_KEY"
+	keyringPassEnv = "LOBY_KEYRING_PASSWORD"
 )
 
 // Source describes where a resolved key came from. Useful for `auth status`.
@@ -46,9 +48,10 @@ type Store struct {
 	ring keyring.Keyring
 }
 
-// Open opens (or creates) the loby keyring. On macOS this uses Keychain;
-// on Linux secret-service; on Windows the credential manager; on headless
-// systems it falls back to an encrypted file under $XDG_CONFIG_HOME/loby.
+// Open opens (or creates) the loby keyring. The released binaries are
+// CGO-free, so the platform-native backends (macOS Keychain, secret-service,
+// WinCred) aren't compiled in — every platform lands on the encrypted file
+// backend under $XDG_CONFIG_HOME/loby, unlocked via filePassword().
 func Open() (*Store, error) {
 	cfgDir, err := loobyConfigDir()
 	if err != nil {
@@ -57,6 +60,7 @@ func Open() (*Store, error) {
 	ring, err := keyring.Open(keyring.Config{
 		ServiceName:              serviceName,
 		FileDir:                  cfgDir,
+		FilePasswordFunc:         filePassword,
 		KeychainTrustApplication: true,
 		KeychainSynchronizable:   false,
 		LibSecretCollectionName:  "default",
@@ -172,6 +176,29 @@ func Prefix(key string) string {
 		return key
 	}
 	return key[:8] + "…"
+}
+
+// filePassword unlocks the encrypted-file keyring backend. The native OS
+// keychains are preferred — this is only reached when none of Keychain,
+// SecretService, or WinCred are usable (headless boxes, unsigned binaries
+// macOS denies, BSDs). LOBY_KEYRING_PASSWORD lets CI / scripted setups
+// avoid the interactive prompt.
+func filePassword(prompt string) (string, error) {
+	if p := os.Getenv(keyringPassEnv); p != "" {
+		return p, nil
+	}
+	if !term.IsTerminal(int(os.Stdin.Fd())) {
+		return "", errfmt.Wrap(errfmt.ConfigError, fmt.Errorf(
+			"file-backed keyring requires a password; set %s or run interactively", keyringPassEnv,
+		))
+	}
+	fmt.Fprintf(os.Stderr, "%s: ", prompt)
+	raw, err := term.ReadPassword(int(os.Stdin.Fd()))
+	fmt.Fprintln(os.Stderr)
+	if err != nil {
+		return "", errfmt.Wrap(errfmt.ConfigError, fmt.Errorf("read keyring password: %w", err))
+	}
+	return strings.TrimSpace(string(raw)), nil
 }
 
 func loobyConfigDir() (string, error) {
