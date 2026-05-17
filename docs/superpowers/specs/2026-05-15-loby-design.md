@@ -190,8 +190,7 @@ loby verify bulk-us --file addresses.csv --concurrency 8         # async submiss
 loby verify bulk-intl ...
 loby verify csv submit --file ... | status <id> | download <id>  # us_csv_verifications
 
-loby identity create --first-name --last-name --address-line1 ... # identity_validation
-loby identity get <id>
+loby identity verify --recipient "Larry Lobster" --primary-line "210 King St" --city SF --state CA --zip 94107  # identity_validation (POST-only)
 
 loby events list [--resource postcards] [--event-type letter.created]
 loby events tail [--resource ...]                                # NDJSON stream
@@ -200,7 +199,9 @@ loby bank-accounts create --routing --account --signatory ...
 loby bank-accounts verify <id> --amounts 11,35
 loby billing-groups create --name --description
 
-loby qr-codes create --redirect-url <url>
+loby qr-codes list [--scanned]                                # qr_code_analytics (read-only — codes are minted in mailer HTML)
+loby links create --redirect-link <url>                       # URL shortener
+loby domains create --domain links.example.com                # custom short-link domain
 loby url-shortener create <long-url>
 
 loby uploads create --campaign-id <id> --file <csv>

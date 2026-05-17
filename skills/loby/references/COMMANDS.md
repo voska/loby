@@ -46,22 +46,22 @@ This is a human-readable copy of `loby schema --json`. The binary itself is the 
 | `loby verify us "…"` | Same as `addresses verify`. |
 | `loby verify intl "…" --country DE` | Verify an international address. |
 | `loby zip 94107` | Look up city/state for a US ZIP. |
-| `loby geo reverse 37.78 -122.4` | Reverse-geocode lat/lng. |
-| `loby identity verify --first-name … --last-name … --line1 …` | Validate identity at an address. |
+| `loby geo reverse --lat 37.78 --lng=-122.4` | Reverse-geocode lat/lng. |
+| `loby identity verify --recipient "Larry Lobster" --primary-line "210 King St" --city … --state CA --zip 94107` | Validate identity at an address. |
 | `loby bulk us --addresses @file.json` | Sync bulk US verification (≤100). |
 | `loby bulk intl --addresses @file.json` | Sync bulk international verification. |
 
 ## Mail creation
 
-Each of these resources has the same verb set: `create`, `get <id>`, `list`, `cancel <id> --confirm`.
+Each resource has `create`, `get <id>`, and `list`. Cancellation support varies because Lob doesn't expose it uniformly:
 
-| Resource | Notes |
-| --- | --- |
-| `loby postcards` | 4x6, 6x9, 6x11. |
-| `loby letters` | PDF, HTML, or template. Color, double-sided, perforated, certified mail. |
-| `loby checks` | Requires a verified bank account. Amount, memo, message, logo. |
-| `loby self-mailers` | 6x18 / 12x9 / 11x9 bifolds. |
-| `loby snap-packs` | 8.5x11 self-sealing snap packs. |
+| Resource | Verbs | Notes |
+| --- | --- | --- |
+| `loby postcards` | create, get, list | 4x6, 6x9, 6x11. No cancel — postcards enter USPS immediately on create. |
+| `loby letters` | create, get, list, cancel | PDF, HTML, or template. Color, double-sided, perforated, certified mail. Cancel = `DELETE /letters/:id`. |
+| `loby checks` | create, get, list, cancel | Requires a verified bank account. Amount, memo, message, logo. |
+| `loby self-mailers` | create, get, list | 6x18 / 12x9 / 11x9 bifolds. No cancel via API. |
+| `loby snap-packs` | create, get, list, cancel | 8.5x11 self-sealing snap packs. |
 
 ## Print assets (campaign artwork)
 
@@ -117,14 +117,24 @@ CRUD verbs: `create`, `get <id>`, `list`, `delete <id> --confirm`.
 | `loby billing-groups create --name …` | Create group. |
 | `loby billing-groups list` | Paginate. |
 
-## Other resources
+## URL shortener + QR analytics
+
+Lob's URL shortener has two resources: `links` (short URLs) and `domains` (custom short-link domains). QR codes are minted by embedding Lob's snippet in mailer HTML; the API only surfaces scan analytics.
 
 | Command | Purpose |
 | --- | --- |
-| `loby qr-codes create --redirect-url https://…` | Trackable QR code. |
-| `loby short-urls create --redirect-url https://…` | Trackable short URL. |
+| `loby links create --redirect-link https://example.com/long`  | Create a tracked short URL. |
+| `loby links get <link_id>` / `list` / `delete <link_id> --confirm` | Manage short URLs. |
+| `loby domains create --domain links.example.com` | Register a custom short-link domain. |
+| `loby domains get <id>` / `list` / `delete <id> --confirm` | Manage custom domains. |
+| `loby qr-codes list [--scanned] [--limit N]` | QR code scan analytics. |
+
+## Events + resource proofs
+
+| Command | Purpose |
+| --- | --- |
 | `loby events list [--resource-type postcards] [--event-type postcard.created]` | Paginate events. |
-| `loby events tail --interval 5s` | NDJSON stream. |
+| `loby events tail --interval 5s` | NDJSON stream of new events. |
 | `loby events get <evt_id>` | Single event. |
 | `loby resource-proofs get <id>` | PDF preview of a printed asset. |
 

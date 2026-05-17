@@ -125,7 +125,7 @@ Authoritative: `loby exit-codes --json`. Codes 7 and 8 are transient — automat
 
 ## Idempotency
 
-Every mutating command auto-generates an `Idempotency-Key`. Lob caches the response for 24h. Retrying with the same flags returns the cached resource. One postcard mails, exactly. Override with `--idempotency-key <key>`.
+Every mutating command auto-generates a deterministic `Idempotency-Key` from `command + flags + body`. Lob caches the response for 24h on mail-creation endpoints (postcards, letters, checks, self-mailers, snap-packs, cards/booklets/buckslips, campaigns/creatives/uploads). Retrying a mailer create with the same flags returns the same resource ID — one postcard mails, exactly. Utility endpoints (address book, links, templates, lookups) don't replay; the key is sent but Lob produces a fresh ID each call. Override the key with `--idempotency-key <key>`.
 
 ## Develop
 

@@ -4,6 +4,26 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.1.4] — 2026-05-16
+
+Distribution and documentation polish.
+
+### Fixed
+- Homebrew tap: formula now lands at the root of `voska/homebrew-tap`
+  (`directory: .`) to match the tap's flat layout so `brew install
+  voska/tap/loby` resolves without manual fixup.
+
+### Changed
+- Skill, README, and design spec aligned with the v0.1.3 command surface:
+  cancel semantics documented per-resource, idempotency caveat noted
+  (Lob only replays mail-creation endpoints — utility endpoints get a
+  fresh ID even with the same key), `qr-codes` reduced to `list`, and
+  `short-urls` replaced with `links` + `domains`.
+
+### Added
+- Unit coverage for the auth-login key-prompt fallback path
+  (`promptKey` non-TTY) and `validKey` prefix validation.
+
 ## [0.1.3] — 2026-05-16
 
 End-to-end live verification against `api.lob.com` test environment.

@@ -57,12 +57,14 @@ loby events tail --resource-type postcards --interval 10s --json \
   | tee -a events.ndjson
 ```
 
+> Note: `campaigns`, `creatives`, `uploads`, `informed-delivery`, `account` (credits balance), `billing-groups`, `snap-packs`, `booklets`, `cards`, and `buckslips` are gated by account features or live mode on Lob's side. With a sandbox key they return 401/403/422. Their CLI surface is implemented to spec but unverified end-to-end on test mode.
+
 ## Recipe 5 — End-to-end direct mail campaign
 
 ```bash
 # Templates.
-tmpl_front=$(loby templates create --description "Promo front" --html @front.html --json | jq -r .id)
-tmpl_back=$(loby templates create --description "Promo back" --html @back.html --json | jq -r .id)
+tmpl_front=$(loby templates create --description "Promo front" --html @front.html --engine handlebars --json | jq -r .id)
+tmpl_back=$(loby templates create --description "Promo back" --html @back.html --engine handlebars --json | jq -r .id)
 
 # Campaign.
 cmp=$(loby campaigns create --name "Q3 Spring Promo" --schedule-type in_future \
@@ -83,7 +85,8 @@ while [ "$(loby uploads get "$upl" --json | jq -r .state)" != "validated" ]; do
   sleep 30
 done
 
-# (Optional) inspect row errors before sending.
+# (Optional) inspect row errors before sending. `uploads exports` requires
+# campaigns (live-mode feature).
 export_id=$(loby uploads exports create "$upl" --type failures --json | jq -r .id)
 loby uploads exports get "$upl" "$export_id" --json
 

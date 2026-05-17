@@ -22,11 +22,12 @@ Quick reference for what each Lob resource is and which `loby` command group man
 | `intl_verification` | `intl_ver_` | `loby verify intl` | International address verification. |
 | `letter` | `ltr_` | `loby letters` | Mailed letter. |
 | `postcard` | `psc_` | `loby postcards` | Mailed postcard. |
-| `qr_code` | `qr_` | `loby qr-codes` | Trackable QR code. |
+| `qr_code` | n/a | `loby qr-codes list` | QR-scan analytics (codes are minted by embedding Lob's snippet in mailer HTML). |
 | `resource_proof` | `proof_` | `loby resource-proofs` | PDF preview of a printed asset. |
 | `reverse_geocode_lookup` | n/a | `loby geo reverse` | Lat/lng → ZIP codes. |
 | `self_mailer` | `sfm_` | `loby self-mailers` | Bi-folded mailer. |
-| `short_url` | `su_` | `loby short-urls` | Trackable short URL. |
+| `link` | `link_` | `loby links` | Lob URL-shortener short link. |
+| `domain` | `dom_` | `loby domains` | Custom short-link domain. |
 | `snap_pack` | `snp_` | `loby snap-packs` | Snap-pack mailer (self-sealing). |
 | `template` | `tmpl_` | `loby templates` | Stored HTML with Handlebars variables. |
 | `upload` | `upl_` | `loby uploads` | CSV upload for a campaign. |
@@ -36,7 +37,9 @@ Quick reference for what each Lob resource is and which `loby` command group man
 
 ## Lifecycle notes
 
-- **Mailers** (`postcard`, `letter`, `check`, `self_mailer`, `snap_pack`) can be canceled with `loby <type> cancel <id> --confirm` before they enter production. After that, only `update metadata` is allowed.
+- **Mailers** — cancel support varies:
+  - `letters`, `checks`, `snap_packs` → `loby <type> cancel <id> --confirm` (issues `DELETE /<type>/:id`).
+  - `postcards` and `self_mailers` cannot be cancelled via the API. They enter USPS on create.
 - **Campaigns** are editable until `loby campaigns send <id> --confirm`. After send, only metadata can change.
 - **Bank accounts** must be verified via two micro-deposits before they can fund checks.
 - **CSV uploads** transition `uploaded → verifying → verified → failed`. Only verified uploads can be mailed.

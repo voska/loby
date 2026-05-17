@@ -33,7 +33,7 @@ Lob keys are prefixed `sk_test_…` (sandbox) or `sk_live_…` (live). Use test 
 3. **Delete and cancel require `--confirm` or `--force`.**
 4. **Use `loby schema --json | jq` to discover** anything you don't know — it is the source of truth.
 5. **Exit codes** drive control flow: `0` success, `3` empty, `4` auth, `5` not_found, `6` forbidden, `7` rate_limited (transient), `8` retryable (transient), `9` payment_required, `10` config_error. Authoritative table: `loby exit-codes --json`.
-6. **Idempotency is automatic.** Every mutating command generates a deterministic `Idempotency-Key` from command + flags + body; Lob caches the response for 24h. Same flags → same response, exactly one mailed.
+6. **Idempotency is automatic on mailer creates.** Every mutating command generates a deterministic `Idempotency-Key` from command + flags + body. Lob caches the response for 24h on mail-creation endpoints (postcards, letters, checks, self-mailers, snap-packs, etc.), so retrying with the same flags returns the same resource ID. Address book, links, templates, and other utility endpoints do *not* cache — those are inherently safe to retry because they're either idempotent already (PUT/DELETE) or cheap to deduplicate client-side. Override the auto-key with `--idempotency-key <key>` when you want explicit control.
 
 ## Output
 
@@ -50,11 +50,18 @@ Lob keys are prefixed `sk_test_…` (sandbox) or `sk_live_…` (live). Use test 
 
 ## Argument conventions
 
-- `--to` / `--from` accept an address ID (`adr_…`), inline JSON, or `@file.json`.
+- `--to` / `--from` accept an address ID (`adr_…`), inline JSON `{"name":"…","address_line1":"…",…}`, or `@file.json`.
 - `--front`, `--back`, `--inside`, `--outside`, `--cover`, `--html`, `--file` accept HTML strings, URLs, template IDs (`tmpl_…`), or `@file`. Text files (.html, .csv, .md) ship as strings; binary files (.pdf, .png, .jpg) are base64-encoded as `data:` URIs.
 - `--metadata key=value` accepts repeated pairs (Lob limit: 20 keys, 500-char values).
 - `--merge-variables` accepts inline JSON or `@file.json`.
 - `informed-delivery create` and other multipart endpoints take real files via `--ride-along-image @path.jpg`.
+- `geo reverse` takes `--lat` and `--lng` (use `--lng=-122.4` for negative longitudes so the parser doesn't read `-` as a short flag).
+- `identity verify` takes `--recipient` (full name) or `--company`, plus a US address via `--primary-line` etc.
+
+## Cancel semantics
+
+- `letters`, `checks`, `snap-packs` support `cancel <id> --confirm` (issues `DELETE /<type>/:id` to Lob).
+- `postcards` and `self-mailers` enter USPS on create and cannot be cancelled via the API.
 
 ## Resources
 
