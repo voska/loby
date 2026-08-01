@@ -21,8 +21,8 @@ jobs:
       - uses: step-security/harden-runner@v2
         with:
           egress-policy: audit
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
@@ -51,8 +51,8 @@ jobs:
         if: runner.os == 'Linux'
         with:
           egress-policy: audit
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
@@ -70,7 +70,7 @@ jobs:
           pct=$(go tool cover -func=coverage.out | tail -n1 | awk '{print $3}' | tr -d '%')
           echo "coverage: ${pct}%"
           awk -v p="$pct" 'BEGIN{exit !(p+0 >= 15)}' || { echo "coverage regressed below 15%"; exit 1; }
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@v7
         if: runner.os == 'Linux'
         with:
           files: ./coverage.out
@@ -93,8 +93,8 @@ jobs:
       - uses: step-security/harden-runner@v2
         with:
           egress-policy: audit
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
@@ -123,8 +123,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
