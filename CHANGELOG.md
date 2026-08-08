@@ -4,6 +4,14 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-08-08
+
+### Fixed
+- Reverted to a Homebrew **formula**. Casks are macOS-only, so v0.3.0/v0.3.1
+  silently dropped `brew install` support on Linux. Formulae work on both.
+  This keeps goreleaser's deprecated `brews` config until it offers a
+  cross-platform replacement.
+
 ## [0.3.1] — 2026-08-08
 
 ### Fixed
@@ -212,7 +220,8 @@ Both bugs surfaced from end-to-end live testing against Lob's test environment.
 - Canonical [SKILL.md](skills/loby/SKILL.md) for AI agents with [command catalog](skills/loby/references/COMMANDS.md), [verified recipes](skills/loby/references/RECIPES.md), and [resource glossary](skills/loby/references/RESOURCES.md).
 - Custom domain <https://lobycli.com> with `install.sh`, `llms.txt`, and the full SKILL bundle for agent discovery.
 
-[Unreleased]: https://github.com/voska/loby/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/voska/loby/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/voska/loby/releases/tag/v0.3.2
 [0.3.1]: https://github.com/voska/loby/releases/tag/v0.3.1
 [0.3.0]: https://github.com/voska/loby/releases/tag/v0.3.0
 [0.2.0]: https://github.com/voska/loby/releases/tag/v0.2.0
