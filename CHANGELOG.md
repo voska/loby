@@ -4,6 +4,18 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-08-08
+
+### Fixed
+- Shell completions are installed again, and `brew install` no longer raises
+  "Apple could not verify loby is free of malware". Homebrew runs the binary to
+  generate completions during artifact install, which happened before the
+  `postflight` hook stripped the quarantine bit, so Gatekeeper SIGKILLed it.
+  The hook is now `preflight`.
+- Dropped the redundant `completion` argument: `shell_parameter_format: cobra`
+  already appends `completion <shell>`, so the generated command was
+  `loby completion completion bash`.
+
 ## [0.3.0] — 2026-08-08
 
 ### Changed
@@ -200,7 +212,8 @@ Both bugs surfaced from end-to-end live testing against Lob's test environment.
 - Canonical [SKILL.md](skills/loby/SKILL.md) for AI agents with [command catalog](skills/loby/references/COMMANDS.md), [verified recipes](skills/loby/references/RECIPES.md), and [resource glossary](skills/loby/references/RESOURCES.md).
 - Custom domain <https://lobycli.com> with `install.sh`, `llms.txt`, and the full SKILL bundle for agent discovery.
 
-[Unreleased]: https://github.com/voska/loby/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/voska/loby/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/voska/loby/releases/tag/v0.3.1
 [0.3.0]: https://github.com/voska/loby/releases/tag/v0.3.0
 [0.2.0]: https://github.com/voska/loby/releases/tag/v0.2.0
 [0.1.3]: https://github.com/voska/loby/releases/tag/v0.1.3

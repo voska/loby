@@ -102,11 +102,12 @@ homebrew_casks:
       email: bot@voska.org
     generate_completions_from_executable:
       executable: loby
-      args:
-        - completion
       shell_parameter_format: cobra
+    # Must be pre-install: Homebrew runs the binary to generate completions
+    # during artifact install, and Gatekeeper SIGKILLs it while the quarantine
+    # bit is still set.
     hooks:
-      post:
+      pre:
         install: |
           if OS.mac?
             system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/loby"]
