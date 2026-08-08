@@ -4,6 +4,12 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-08-08
+
+### Changed
+- The Homebrew formula is published into `Formula/` in `voska/homebrew-tap`
+  instead of the tap root, so `brew install voska/tap/loby` resolves again.
+
 ## [0.1.9] — 2026-05-16
 
 ### Removed
@@ -187,7 +193,8 @@ Both bugs surfaced from end-to-end live testing against Lob's test environment.
 - Canonical [SKILL.md](skills/loby/SKILL.md) for AI agents with [command catalog](skills/loby/references/COMMANDS.md), [verified recipes](skills/loby/references/RECIPES.md), and [resource glossary](skills/loby/references/RESOURCES.md).
 - Custom domain <https://lobycli.com> with `install.sh`, `llms.txt`, and the full SKILL bundle for agent discovery.
 
-[Unreleased]: https://github.com/voska/loby/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/voska/loby/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/voska/loby/releases/tag/v0.2.0
 [0.1.3]: https://github.com/voska/loby/releases/tag/v0.1.3
 [0.1.2]: https://github.com/voska/loby/releases/tag/v0.1.2
 [0.1.1]: https://github.com/voska/loby/releases/tag/v0.1.1
