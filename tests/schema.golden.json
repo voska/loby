@@ -1841,45 +1841,6 @@
           ]
         },
         {
-          "name": "update",
-          "help": "Update a campaign.",
-          "flags": [
-            {
-              "name": "name",
-              "help": "New name.",
-              "type": "string"
-            },
-            {
-              "name": "description",
-              "help": "New description.",
-              "type": "string"
-            },
-            {
-              "name": "send-date",
-              "help": "New send date.",
-              "type": "string"
-            },
-            {
-              "name": "billing-group-id",
-              "help": "Billing group ID.",
-              "type": "string"
-            },
-            {
-              "name": "metadata",
-              "help": "Replace metadata.",
-              "type": "map[string]string"
-            }
-          ],
-          "positional": [
-            {
-              "name": "id",
-              "help": "Campaign ID.",
-              "type": "string",
-              "required": true
-            }
-          ]
-        },
-        {
           "name": "delete",
           "help": "Delete a campaign.",
           "flags": [
@@ -2045,77 +2006,93 @@
             },
             {
               "name": "resource-type",
-              "help": "Resource type.",
+              "help": "Mail piece kind.",
               "type": "string",
               "required": true,
               "enum": [
                 "postcard",
                 "letter",
                 "self_mailer",
-                "snap_pack"
+                "snap_pack",
+                "booklet",
+                "card",
+                "buckslip"
               ]
             },
             {
               "name": "from",
-              "help": "Sender address ID or JSON.",
-              "type": "string",
-              "required": true
+              "help": "Sender address ID, inline JSON, or @file.json.",
+              "type": "string"
             },
             {
-              "name": "details",
-              "help": "Detail JSON (HTML/file refs etc., or @file.json).",
+              "name": "front",
+              "help": "Front artwork: HTML string, URL, tmpl_id, or @file (postcard, self_mailer, snap_pack, buckslip).",
+              "type": "string"
+            },
+            {
+              "name": "back",
+              "help": "Back artwork: HTML string, URL, tmpl_id, or @file (postcard, self_mailer, snap_pack, buckslip).",
+              "type": "string"
+            },
+            {
+              "name": "inside",
+              "help": "Inside artwork: HTML string, URL, tmpl_id, or @file (self_mailer, snap_pack).",
+              "type": "string"
+            },
+            {
+              "name": "outside",
+              "help": "Outside artwork: HTML string, URL, tmpl_id, or @file (self_mailer, snap_pack).",
+              "type": "string"
+            },
+            {
+              "name": "cover",
+              "help": "Cover artwork (booklet, card).",
+              "type": "string"
+            },
+            {
+              "name": "file",
+              "help": "File body for letters (HTML, URL, tmpl_id, or @file).",
+              "type": "string"
+            },
+            {
+              "name": "size",
+              "help": "Mail piece size (e.g. 4x6, 6x11, 6x18 — varies by resource_type).",
               "type": "string"
             },
             {
               "name": "mail-type",
-              "help": "Delivery class.",
-              "type": "string",
-              "default": "usps_first_class",
-              "enum": [
-                "usps_first_class",
-                "usps_standard"
-              ]
+              "help": "Postage class (usps_first_class, usps_standard, usps_standard_class).",
+              "type": "string"
+            },
+            {
+              "name": "color",
+              "help": "Color print for letters (defaults true on Lob's side).",
+              "type": "bool"
+            },
+            {
+              "name": "double-sided",
+              "help": "Letters double-sided.",
+              "type": "bool"
+            },
+            {
+              "name": "address-placement",
+              "help": "Letter address placement (top_first_page, insert_blank_page).",
+              "type": "string"
+            },
+            {
+              "name": "extra-service",
+              "help": "Extra letter service (certified, registered, certified_return_receipt).",
+              "type": "string"
+            },
+            {
+              "name": "details",
+              "help": "Override the details object (JSON or @file.json) — escape hatch for fields not exposed as flags.",
+              "type": "string"
             },
             {
               "name": "metadata",
               "help": "Metadata key=value pairs.",
               "type": "map[string]string"
-            }
-          ]
-        },
-        {
-          "name": "get",
-          "help": "Retrieve a creative.",
-          "positional": [
-            {
-              "name": "id",
-              "help": "Creative ID (crv_…).",
-              "type": "string",
-              "required": true
-            }
-          ]
-        },
-        {
-          "name": "update",
-          "help": "Update a creative.",
-          "flags": [
-            {
-              "name": "description",
-              "help": "New description.",
-              "type": "string"
-            },
-            {
-              "name": "metadata",
-              "help": "Replace metadata.",
-              "type": "map[string]string"
-            }
-          ],
-          "positional": [
-            {
-              "name": "id",
-              "help": "Creative ID.",
-              "type": "string",
-              "required": true
             }
           ]
         }
@@ -2236,18 +2213,6 @@
                   ]
                 }
               ],
-              "positional": [
-                {
-                  "name": "id",
-                  "help": "Upload ID.",
-                  "type": "string",
-                  "required": true
-                }
-              ]
-            },
-            {
-              "name": "list",
-              "help": "List export jobs for an upload.",
               "positional": [
                 {
                   "name": "id",
@@ -3069,12 +3034,7 @@
             },
             {
               "name": "event-type",
-              "help": "Filter by event type (e.g. postcard.created).",
-              "type": "string"
-            },
-            {
-              "name": "resource-type",
-              "help": "Filter by resource type.",
+              "help": "Filter by event type (e.g. postcard.created, letter.delivered).",
               "type": "string"
             },
             {
@@ -3095,13 +3055,8 @@
               "default": "5s"
             },
             {
-              "name": "resource-type",
-              "help": "Filter by resource type.",
-              "type": "string"
-            },
-            {
               "name": "event-type",
-              "help": "Filter by event type.",
+              "help": "Filter by event type (e.g. postcard.created).",
               "type": "string"
             }
           ]
