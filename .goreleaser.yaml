@@ -85,24 +85,32 @@ changelog:
       - "^ci:"
       - Merge pull request
 
-brews:
+homebrew_casks:
   - name: loby
     repository:
       owner: voska
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    directory: Formula
+    directory: Casks
     homepage: https://lobycli.com
     description: Canonical CLI for Lob — direct mail, address verification, and campaigns for humans and AI agents.
     license: MIT
+    url:
+      verified: github.com/voska/loby
     commit_author:
       name: loby-bot
       email: bot@voska.org
-    test: |
-      assert_match "loby", shell_output("#{bin}/loby version")
-    install: |
-      bin.install "loby"
-      generate_completions_from_executable(bin/"loby", "completion")
+    generate_completions_from_executable:
+      executable: loby
+      args:
+        - completion
+      shell_parameter_format: cobra
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/loby"]
+          end
 
 scoops:
   - name: loby
