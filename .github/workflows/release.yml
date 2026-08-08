@@ -55,7 +55,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Single PAT scoped to push to both voska/homebrew-tap and voska/scoop-bucket.
-          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ env.GPG_FINGERPRINT }}
       - name: attest binary provenance
         uses: actions/attest-build-provenance@v4

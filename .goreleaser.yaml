@@ -90,7 +90,7 @@ brews:
     repository:
       owner: voska
       name: homebrew-tap
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     directory: Formula
     homepage: https://lobycli.com
     description: Canonical CLI for Lob — direct mail, address verification, and campaigns for humans and AI agents.
@@ -111,7 +111,7 @@ scoops:
       name: scoop-bucket
       # Same PAT as the Homebrew tap — one token, scoped to push to both
       # voska/homebrew-tap and voska/scoop-bucket.
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     homepage: https://lobycli.com
     description: Canonical CLI for Lob — direct mail, address verification, and campaigns for humans and AI agents.
     license: MIT
