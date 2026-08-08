@@ -91,10 +91,7 @@ brews:
       owner: voska
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    # voska/homebrew-tap uses the legacy flat root layout (no Formula/
-    # subdir) so existing taps stay consistent and brew can resolve
-    # voska/tap/loby without --HEAD or extra config.
-    directory: .
+    directory: Formula
     homepage: https://lobycli.com
     description: Canonical CLI for Lob — direct mail, address verification, and campaigns for humans and AI agents.
     license: MIT
