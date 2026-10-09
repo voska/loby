@@ -4,6 +4,11 @@ All notable changes to `loby` are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Security
+- Updated the encrypted file keyring's jose2go dependency to v1.7.0 to bound
+  JWE decompression and PBKDF2 iteration counts (CVE-2025-63811 and
+  CVE-2023-50658).
+
 ## [0.3.2] — 2026-08-08
 
 ### Fixed
