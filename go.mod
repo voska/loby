@@ -6,7 +6,7 @@ toolchain go1.26.10
 
 require (
 	github.com/99designs/keyring v1.2.2
-	github.com/alecthomas/kong v1.16.1
+	github.com/alecthomas/kong v1.17.0
 	golang.org/x/term v0.47.0
 )
 
